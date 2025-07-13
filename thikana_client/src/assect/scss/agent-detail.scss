@@ -1,0 +1,78 @@
+// Styling for the Agent Detail Page
+
+.agent-detail {
+    margin-top: 100px;
+    margin-bottom: 80px;
+
+    .agent-header {
+        margin-bottom: 30px;
+
+        img {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 300px !important;
+            object-fit: cover;
+            height: auto;
+            border-radius: 10px;
+        }
+
+        .agent-info {
+            h2 {
+                font-size: 2rem;
+                color: $primary;
+                margin-bottom: 10px;
+            }
+
+            p {
+                font-size: 1rem;
+                color: var(--text-muted);
+                margin-bottom: 5px;
+            }
+
+            ul {
+                list-style: none;
+                padding: 0;
+
+                li {
+                    font-size: 1rem;
+                    margin-bottom: 5px;
+
+                    strong {
+                        color: $primary;
+                    }
+                }
+            }
+        }
+    }
+
+    .action-buttons {
+        margin-top: 20px;
+
+        a {
+            display: inline-block;
+            margin-right: 10px;
+            padding: 10px 20px;
+            font-size: 17px;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+
+            &.btn-primary {
+                background-color: $primary;
+                color: #fff;
+
+                &:hover {
+                    background-color: darken($primary, 10%);
+                }
+            }
+
+            &.btn-secondary {
+                background-color: $primary;
+                color: #fff;
+
+                &:hover {
+                    background-color: darken($primary, 10%);
+                }
+            }
+        }
+    }
+}
