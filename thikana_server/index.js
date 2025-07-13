@@ -154,6 +154,10 @@ app.post('/api/properties', authenticateToken, upload.fields([
     if (req.files['galleryImages']) {
       postData.galleryImages = req.files['galleryImages'].map(f => f.filename);
     }
+    // Parse map field if it's a string
+    if (postData.map && typeof postData.map === 'string') {
+      try { postData.map = JSON.parse(postData.map); } catch {}
+    }
     const result = await propertiesCollection.insertOne(postData);
     res.status(201).json({ message: 'Property posted successfully', property: result });
   } catch (error) {
@@ -233,6 +237,10 @@ app.put('/api/properties/:id', authenticateToken, upload.fields([
     // Attach file paths
     if (req.files['coverImage']) updateData.coverImage = req.files['coverImage'][0].filename;
     if (req.files['galleryImages']) updateData.galleryImages = req.files['galleryImages'].map(f => f.filename);
+    // Parse map field if it's a string
+    if (updateData.map && typeof updateData.map === 'string') {
+      try { updateData.map = JSON.parse(updateData.map); } catch {}
+    }
     await propertiesCollection.updateOne(
       { _id: new ObjectId(propertyId) },
       { $set: updateData }
@@ -267,6 +275,10 @@ app.post('/api/properties/:id', authenticateToken, upload.fields([
     if (updateData.beforePrice) updateData.beforePrice = Number(updateData.beforePrice);
     if (req.files['coverImage']) updateData.coverImage = req.files['coverImage'][0].filename;
     if (req.files['galleryImages']) updateData.galleryImages = req.files['galleryImages'].map(f => f.filename);
+    // Parse map field if it's a string
+    if (updateData.map && typeof updateData.map === 'string') {
+      try { updateData.map = JSON.parse(updateData.map); } catch {}
+    }
     await propertiesCollection.updateOne(
       { _id: new ObjectId(propertyId) },
       { $set: updateData }
@@ -447,4 +459,14 @@ app.post('/api/messages/:conversationId/read', authenticateToken, async (req, re
     } catch (error) {
         res.status(500).json({ message: 'Error marking messages as read', error });
     }
+});
+
+// GET /api/properties/all - Get all properties (public, for homepage etc.)
+app.get('/api/properties/all', async (req, res) => {
+  try {
+    const properties = await propertiesCollection.find({}).toArray();
+    res.json(properties);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching all properties', error });
+  }
 });

@@ -5,6 +5,7 @@ import coverImg from "../assect/images/profile-cover.png";
 import defaultProfile from "../assect/images/profile-thumb.png";
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import { useDropzone } from 'react-dropzone';
+import LeafletLocationPicker from '../components/LeafletLocationPicker';
 
 import Navbar from "../components/navbar";
 import Footer from "../components/footer";
@@ -88,6 +89,8 @@ function PostPropertyTab({ user, onSuccess, editProperty }) {
   const [mainImagePreview, setMainImagePreview] = useState(null);
   // Gallery image previews
   const [galleryPreviews, setGalleryPreviews] = useState([]);
+  // Add a state for map coordinates
+  const [mapCoords, setMapCoords] = useState(form.map && typeof form.map === 'object' ? form.map : null);
 
   useEffect(() => {
     const locLabel = locationOptions.find(l => l.value === form.location)?.label;
@@ -130,6 +133,10 @@ function PostPropertyTab({ user, onSuccess, editProperty }) {
       } else {
         setGalleryPreviews([]);
       }
+      // If editing and map is coordinates, set mapCoords
+      if (editProperty && editProperty.map && typeof editProperty.map === 'object') {
+        setMapCoords(editProperty.map);
+      }
     }
   }, [editProperty]);
 
@@ -168,6 +175,8 @@ function PostPropertyTab({ user, onSuccess, editProperty }) {
           v.forEach(img => formData.append("galleryImages", img));
         } else if (Array.isArray(v)) {
           v.forEach(val => formData.append(k, val));
+        } else if (k === "map" && typeof v === 'object' && v !== null) {
+          formData.append('map', JSON.stringify(v));
         } else if (k !== "_id") {
           formData.append(k, v);
         }
@@ -241,6 +250,11 @@ function PostPropertyTab({ user, onSuccess, editProperty }) {
     }
   });
 
+  const handleMapChange = (coords) => {
+    setMapCoords(coords);
+    setForm(f => ({ ...f, map: coords }));
+  };
+
   return (
     <div className="w-full max-w-2xl mx-auto bg-white rounded-xl shadow p-8">
       <div className="flex gap-4 mb-8">
@@ -270,8 +284,7 @@ function PostPropertyTab({ user, onSuccess, editProperty }) {
           </div>
           <div>
             <label className="block font-semibold mb-1">Description</label>
-            <textarea className="form-input w-full" style={{ border: '1px solid rgb(230, 230, 230)', borderRadius: '8px',padding: '10px'}}
- name="description" value={form.description} onChange={handleChange} required />
+            <textarea className="form-input w-full" style={{ border: '1px solid rgb(230, 230, 230)', borderRadius: '8px',padding: '10px'}} name="description" value={form.description} onChange={handleChange} required />
           </div>
           <div className="flex gap-4">
             <div className="flex-1">
@@ -402,8 +415,11 @@ function PostPropertyTab({ user, onSuccess, editProperty }) {
             </div>
           </div>
           <div>
-            <label className="block font-semibold mb-1">Map Location (Google Maps embed URL)</label>
-            <input className="form-input w-full" style={{ border: '1px solid rgb(230, 230, 230)', borderRadius: '8px',padding: '10px'}} name="map" value={form.map} onChange={handleChange}  />
+            <label className="block font-semibold mb-1">Map Location</label>
+            <LeafletLocationPicker value={mapCoords} onChange={handleMapChange} />
+            {mapCoords && (
+              <div className="text-xs text-gray-500 mt-1">Selected: Lat {mapCoords.lat}, Lng {mapCoords.lng}</div>
+            )}
           </div>
           {success && <div className="text-green-600 font-bold">{success}</div>}
           {error && <div className="text-red-600 font-bold">{error}</div>}
@@ -558,8 +574,11 @@ function PostPropertyTab({ user, onSuccess, editProperty }) {
             </div>
           </div>
           <div>
-            <label className="block font-semibold mb-1">Map Location (Google Maps embed URL)</label>
-            <input className="form-input w-full" style={{ border: '1px solid rgb(230, 230, 230)', borderRadius: '8px',padding: '10px'}} name="map" value={form.map} onChange={handleChange}  />
+            <label className="block font-semibold mb-1">Map Location</label>
+            <LeafletLocationPicker value={mapCoords} onChange={handleMapChange} />
+            {mapCoords && (
+              <div className="text-xs text-gray-500 mt-1">Selected: Lat {mapCoords.lat}, Lng {mapCoords.lng}</div>
+            )}
           </div>
           {success && <div className="text-green-600 font-bold">{success}</div>}
           {error && <div className="text-red-600 font-bold">{error}</div>}
@@ -867,6 +886,10 @@ export default function Profiles() {
         }
       }
     }, [activeTab]);
+
+    useEffect(() => {
+      window.scrollTo({ top: 0, behavior: 'auto' });
+    }, []);
 
     return (
         <div className="bg-gradient-to-br from-[#f3f4f6] to-[#e0e7ff]">

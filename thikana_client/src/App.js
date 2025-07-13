@@ -17,6 +17,7 @@ import AgentDetail from "./pages/agent-detail";
 import { Navigate } from "react-router-dom";
 import PublicProfile from "./pages/public-profile"; // Import the PublicProfile component
 import MessagesPage from "./pages/messages";
+import './App.css';
 
 
 function PrivateRoute({ children }) {

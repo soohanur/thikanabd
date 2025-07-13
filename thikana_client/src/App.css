@@ -36,3 +36,9 @@
     transform: rotate(360deg);
   }
 }
+.tns-controls {
+  display: none !important;
+}
+a.block.text-lg.font-bold.text-gray-800.hover\:text-green-700.transition {
+  font-size: 22px;
+}

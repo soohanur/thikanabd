@@ -33,12 +33,9 @@ function MessagesPage({ user: propUser }) {
         if (conv) {
           setSelectedConv(conv.conversationId);
         } else {
-          // No conversation yet, create one by sending an empty message (or handle in UI)
           setSelectedConv(null);
         }
-      } else if (res.data.length > 0) {
-        setSelectedConv(res.data[0].conversationId);
-      }
+      } // Removed auto-selecting first conversation
     });
   }, [userId]);
 
@@ -97,16 +94,21 @@ function MessagesPage({ user: propUser }) {
           return tB - tA;
         });
         setConversations(sorted);
-        if (userId) {
+        // Only update selectedConv if userId is present in the URL and no conversation is selected yet
+        if (userId && !selectedConv) {
           let conv = sorted.find(c => c.participants.includes(userId));
           if (conv) setSelectedConv(conv.conversationId);
+        } else if (selectedConv && !sorted.some(c => c.conversationId === selectedConv)) {
+          // If the selected conversation was deleted, clear selection
+          setSelectedConv(null);
         }
+        // Otherwise, do not change selectedConv
       });
     };
     fetchConversations();
     const interval = setInterval(fetchConversations, 2000);
     return () => clearInterval(interval);
-  }, [userId]);
+  }, [userId, selectedConv]);
 
   // Poll for messages in selected conversation
   useEffect(() => {
@@ -190,19 +192,19 @@ function MessagesPage({ user: propUser }) {
   return (
     <>
     <Navbar navClass="defaultscroll sticky top-0 z-50" menuClass="navigation-menu nav-left" />
-    <div className="flex h-[600px] mt-[130px] container bg-white rounded-3xl shadow overflow-hidden">
+    <div className="flex bg-gray-50 h-[600px] mt-[110px]  container rounded-3xl shadow overflow-hidden">
         
       {/* Sidebar: Conversations */}
       <div className="w-1/3   border-r bg-gray-50 p-4 overflow-y-auto">
         <h3 className="font-bold text-lg mb-4">Messages</h3>
-        <ul>
+        <ul className=" ml-[-30px] "> 
           {conversations.map(conv => {
             const otherId = conv.participants.find(id => id !== user?.userId && id !== user?._id);
             const info = userInfos[otherId] || {};
             const isUnread = conv.lastMessage && conv.lastMessage.senderId === otherId && !conv.lastMessage.read;
             return (
               <li key={conv.conversationId}
-                  className={`flex items-center gap-3 p-2 rounded cursor-pointer mb-2 ${selectedConv === conv.conversationId ? 'bg-green-100' : ''}`}
+                  className={`flex items-center gap-3 p-2 rounded-xl cursor-pointer mb-2 ${selectedConv === conv.conversationId ? 'bg-green-100' : ''}`}
                   style={{ background: isUnread ? 'rgb(255 230 230)' : undefined }}
                   onClick={() => setSelectedConv(conv.conversationId)}>
                 <img src={info.profilePicture ? (info.profilePicture.startsWith('http') ? info.profilePicture : `http://localhost:5000${info.profilePicture}`) : defaultProfile} alt="avatar" className="w-10 h-10 rounded-full object-cover" />
@@ -218,13 +220,13 @@ function MessagesPage({ user: propUser }) {
       </div>
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col">
-        <div className="bg-green-500 text-white px-6 py-3 font-bold">{selectedConv ? `Conversation` : "Select a conversation"}</div>
+        <div className="bg-green-700 text-white px-6 py-3 font-bold">{selectedConv ? `Conversation` : "Select a conversation"}</div>
         <div className="flex-1 p-6 overflow-y-auto bg-gray-100">
           {/* Remove loading message for real-time updates */}
           <div className="flex flex-col gap-2">
             {messages.map((msg, idx) => (
               <div key={idx} className={`flex ${msg.senderId === user?.userId || msg.senderId === user?._id ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[60%] px-4 py-2 rounded-2xl shadow ${msg.senderId === user?.userId || msg.senderId === user?._id ? 'bg-green-500 text-white' : 'bg-white text-gray-800'}`}>{msg.text}</div>
+                <div className={`max-w-[60%] px-4 py-2 rounded-2xl shadow ${msg.senderId === user?.userId || msg.senderId === user?._id ? 'bg-green-700 text-white' : 'bg-white text-gray-800'}`}>{msg.text}</div>
               </div>
             ))}
             <div ref={messagesEndRef} />
@@ -238,7 +240,7 @@ function MessagesPage({ user: propUser }) {
             value={messageText}
             onChange={e => setMessageText(e.target.value)}
           />
-          <button type="submit" className="bg-green-500 text-white px-4 py-2 rounded-full font-bold">Send</button>
+          <button type="submit" className="bg-green-700 text-white px-4 py-2 rounded-full font-bold">Send</button>
         </form>
       </div>
     </div>

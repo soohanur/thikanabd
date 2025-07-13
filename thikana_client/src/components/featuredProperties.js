@@ -1,11 +1,25 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { propertyData } from "../data/data";
 import { FiHome, FiHeart, FiCamera } from '../assect/icons/vander';
+import axios from "axios";
 
 export default function FeaturedProperties() {
-    // Sort properties so verified listings appear first
-    const sortedPropertyData = propertyData.sort((a, b) => b.verified - a.verified);
+    const [properties, setProperties] = useState([]);
+
+    useEffect(() => {
+        // Fetch all properties from backend
+        axios.get("http://localhost:5000/api/properties/all")
+            .then(res => setProperties(res.data))
+            .catch(() => setProperties([]));
+    }, []);
+
+    // Sort properties: latest verified first, then latest unverified
+    const sortedPropertyData = properties.slice().sort((a, b) => {
+        if (a.verified && !b.verified) return -1;
+        if (!a.verified && b.verified) return 1;
+        // Both same verified status, sort by _id (MongoDB ObjectId) descending (latest first)
+        return (b._id?.toString() || '').localeCompare(a._id?.toString() || '');
+    });
 
     return (
         <>
@@ -32,27 +46,23 @@ export default function FeaturedProperties() {
                                             Verified
                                         </span>
                                     )}
-                                    <img src={item.image} className="img-fluid" alt="" />
+                                    <img 
+                                      src={item.coverImage ? (item.coverImage.startsWith('http') ? item.coverImage : `http://localhost:5000/uploads/${item.coverImage}`) : item.image || ''} 
+                                      className="img-fluid" 
+                                      alt="" 
+                                      style={{ width: '100%', height: '220px', objectFit: 'cover', objectPosition: 'center center', borderRadius: '12px' }}
+                                    />
                                     <ul className="list-unstyled property-icon">
-                                        <li className="">
-                                            <Link to="#" className="btn btn-sm btn-icon btn-pills btn-primary">
-                                                <FiHome className="icons" />
-                                            </Link>
-                                        </li>
+                                        
                                         <li className="mt-1">
                                             <Link to="#" className="btn btn-sm btn-icon btn-pills btn-primary">
                                                 <FiHeart className="icons" />
                                             </Link>
                                         </li>
-                                        <li className="mt-1">
-                                            <Link to="#" className="btn btn-sm btn-icon btn-pills btn-primary">
-                                                <FiCamera className="icons" />
-                                            </Link>
-                                        </li>
                                     </ul>
                                 </div>
                                 <div className="card-body content p-4">
-                                    <Link to={`/property-detail/${item.id}`} className="title fs-5 text-dark fw-medium">
+                                    <Link to={`/property-detail/${item._id || item.id}`} className="title fs-5 text-dark fw-medium">
                                         {item.title}
                                     </Link>
 
@@ -60,8 +70,8 @@ export default function FeaturedProperties() {
                                         <li className="d-flex align-items-center me-3">
                                             <i className="mdi mdi-arrow-expand-all fs-5 me-2 text-primary"></i>
                                             <span className="text-muted">
-                                                            {item.size} sq.ft
-                                                        </span>
+                                                {item.size} sq.ft
+                                            </span>
                                         </li>
 
                                         <li className="d-flex align-items-center me-3">
@@ -78,23 +88,25 @@ export default function FeaturedProperties() {
                                         <li className="list-inline-item mb-0">
                                             <span className="text-muted">Price</span>
                                             <p className="fw-medium mb-0">
-                                                            ৳{item.price}/month
-                                                        </p>
+                                                ৳{item.price}/month
+                                            </p>
                                         </li>
                                         <li className="list-inline-item mb-0 text-muted">
                                             <span className="text-muted">Rating</span>
                                             <ul className="fw-medium text-warning list-unstyled mb-0">
-                                                {[...Array(Math.floor(item.rating))].map((_, i) => (
+                                                {[...Array(Math.floor(item.rating || 0))].map((_, i) => (
                                                     <li key={i} className="list-inline-item mb-0">
                                                         <i className="mdi mdi-star"></i>
                                                     </li>
                                                 ))}
                                                 <li className="list-inline-item mb-0 text-dark">
-                                                    {item.rating} ({item.reviews})
+                                                    {item.rating} ({item.reviews?.length || 0})
                                                 </li>
                                             </ul>
                                         </li>
                                     </ul>
+                                    {/* Show posted by userId for tracking */}
+                                    <div className="mt-2 hidden text-muted" style={{fontSize:'12px'}}>Posted by: {item.userId}</div>
                                 </div>
                             </div>
                         </div>
