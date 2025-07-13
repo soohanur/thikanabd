@@ -218,7 +218,7 @@ function MessagesPage({ user: propUser }) {
       </div>
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col">
-        <div className="bg-blue-500 text-white px-6 py-3 font-bold">{selectedConv ? `Conversation` : "Select a conversation"}</div>
+        <div className="bg-green-500 text-white px-6 py-3 font-bold">{selectedConv ? `Conversation` : "Select a conversation"}</div>
         <div className="flex-1 p-6 overflow-y-auto bg-gray-100">
           {/* Remove loading message for real-time updates */}
           <div className="flex flex-col gap-2">
