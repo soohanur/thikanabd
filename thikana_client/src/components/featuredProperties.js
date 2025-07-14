@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { FiHome, FiHeart } from '../assect/icons/vander';
 import { FaCheck } from 'react-icons/fa';
 import axios from "axios";
+import { apiUrl } from "../utils/api";
 
 export default function FeaturedProperties() {
     const [properties, setProperties] = useState([]);
@@ -10,14 +11,14 @@ export default function FeaturedProperties() {
 
     useEffect(() => {
         // Fetch all properties from backend
-        axios.get("http://localhost:5000/api/properties/all")
+        axios.get(apiUrl("/api/properties/all"))
             .then(res => setProperties(res.data))
             .catch(() => setProperties([]));
         // Fetch wishlist
         const fetchWishlist = async () => {
             try {
                 const token = localStorage.getItem('thikana_token');
-                const res = await axios.get('http://localhost:5000/api/wishlist', {
+                const res = await axios.get(apiUrl('/api/wishlist'), {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 setWishlist(res.data || []);
@@ -33,12 +34,12 @@ export default function FeaturedProperties() {
         const isWishlisted = wishlist.some(p => p._id === propertyId || p.id === propertyId);
         try {
             if (!isWishlisted) {
-                await axios.post(`http://localhost:5000/api/wishlist/${propertyId}`, {}, {
+                await axios.post(apiUrl(`/api/wishlist/${propertyId}`), {}, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 setWishlist(prev => [...prev, { _id: propertyId }]);
             } else {
-                await axios.delete(`http://localhost:5000/api/wishlist/${propertyId}`, {
+                await axios.delete(apiUrl(`/api/wishlist/${propertyId}`), {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 setWishlist(prev => prev.filter(p => (p._id || p.id) !== propertyId));
@@ -80,7 +81,7 @@ export default function FeaturedProperties() {
                                         </span>
                                     )}
                                     <img 
-                                      src={item.coverImage ? (item.coverImage.startsWith('http') ? item.coverImage : `http://localhost:5000/uploads/${item.coverImage}`) : item.image || ''} 
+                                      src={item.coverImage ? (item.coverImage.startsWith('http') ? item.coverImage : apiUrl(`/uploads/${item.coverImage}`)) : item.image || ''} 
                                       className="img-fluid" 
                                       alt="" 
                                       style={{ width: '100%', height: '220px', objectFit: 'cover', objectPosition: 'center center', borderRadius: '12px' }}

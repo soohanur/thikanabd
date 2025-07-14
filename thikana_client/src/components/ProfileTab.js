@@ -4,9 +4,10 @@ import defaultProfile from "../assect/images/profile-thumb.png";
 import coverImg from "../assect/images/profile-cover.png";
 import axios from "axios";
 import { Link } from "react-router-dom";
+import { apiUrl } from "../utils/api";
 
 function fetchUserProfile(token) {
-  return axios.get("http://localhost:5000/api/user/profile", {
+  return axios.get(apiUrl("/api/user/profile"), {
     headers: { Authorization: `Bearer ${token}` },
   }).then(res => res.data);
 }
@@ -59,8 +60,8 @@ export default function ProfileTab({ user, onUpdate }) {
           profilePicture: null,
           coverPicture: null,
         }));
-        setAvatarPreview(data.profilePicture || defaultProfile);
-        setCoverPreview(data.coverPicture || coverImg);
+        setAvatarPreview(data.profilePicture ? (data.profilePicture.startsWith('http') ? data.profilePicture : apiUrl(data.profilePicture)) : defaultProfile);
+        setCoverPreview(data.coverPicture ? (data.coverPicture.startsWith('http') ? data.coverPicture : apiUrl(data.coverPicture)) : coverImg);
       });
     }
   }, []);
@@ -81,7 +82,7 @@ export default function ProfileTab({ user, onUpdate }) {
         if (v) formData.append(k, v);
       });
       const token = localStorage.getItem("thikana_token");
-      await axios.post("http://localhost:5000/api/user/profile", formData, {
+      await axios.post(apiUrl("/api/user/profile"), formData, {
         headers: { Authorization: `Bearer ${token}` },
       });
       // Fetch latest user profile and update UI/localStorage

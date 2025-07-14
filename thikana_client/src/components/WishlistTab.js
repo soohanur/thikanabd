@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import defaultProfile from "../assect/images/profile-thumb.png";
+import { apiUrl } from "../utils/api";
 
 export default function WishlistTab({ wishlist, onRemove }) {
   return (
@@ -21,11 +22,11 @@ export default function WishlistTab({ wishlist, onRemove }) {
                 property.coverImage
                   ? (property.coverImage.startsWith('http')
                       ? property.coverImage
-                      : `http://localhost:5000/uploads/${property.coverImage}`)
+                      : apiUrl(`/uploads/${property.coverImage}`))
                   : property.image
                     ? (property.image.startsWith('http')
                         ? property.image
-                        : `http://localhost:5000${property.image}`)
+                        : apiUrl(property.image))
                     : defaultProfile
               }
               className="w-full h-48 object-cover rounded-t-3"

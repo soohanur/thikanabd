@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import axios from "axios";
+import { apiUrl } from "../utils/api";
 
 export default function BecomeAgentTab({ user, onUpdate }) {
   const [form, setForm] = useState({
@@ -58,7 +59,7 @@ export default function BecomeAgentTab({ user, onUpdate }) {
       if (form.nidBack) formData.append("nidBack", form.nidBack);
       formData.append("agent", "agent");
       const token = localStorage.getItem("thikana_token");
-      await axios.post("http://localhost:5000/api/user/profile", formData, {
+      await axios.post(apiUrl("/api/user/profile"), formData, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setSuccess("Profile updated! You are now an agent.");
@@ -81,8 +82,8 @@ export default function BecomeAgentTab({ user, onUpdate }) {
       agentCharge: user?.agentCharge !== undefined && user?.agentCharge !== null ? String(user.agentCharge) : "",
     }));
     // Show latest NID images if present in user
-    setNidFrontPreview(user?.nidFront ? (user.nidFront.startsWith('http') ? user.nidFront : `http://localhost:5000${user.nidFront}`) : null);
-    setNidBackPreview(user?.nidBack ? (user.nidBack.startsWith('http') ? user.nidBack : `http://localhost:5000${user.nidBack}`) : null);
+    setNidFrontPreview(user?.nidFront ? (user.nidFront.startsWith('http') ? user.nidFront : apiUrl(user.nidFront)) : null);
+    setNidBackPreview(user?.nidBack ? (user.nidBack.startsWith('http') ? user.nidBack : apiUrl(user.nidBack)) : null);
   }, [user]);
 
   return (

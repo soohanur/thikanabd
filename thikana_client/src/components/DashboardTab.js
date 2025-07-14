@@ -2,6 +2,7 @@ import React from "react";
 import coverImg from "../assect/images/profile-cover.png";
 import defaultProfile from "../assect/images/profile-thumb.png";
 import { Link } from "react-router-dom";
+import { apiUrl } from "../utils/api";
 
 export default function DashboardTab({ user, properties }) {
   return (
@@ -9,7 +10,7 @@ export default function DashboardTab({ user, properties }) {
       <div className="w-full mb-8 relative">
         <div className="rounded-3xl overflow-hidden shadow-lg w-full">
           <img
-            src={user?.coverPicture ? (user.coverPicture.startsWith('http') ? user.coverPicture : `http://localhost:5000${user.coverPicture}`) : coverImg}
+            src={user?.coverPicture ? (user.coverPicture.startsWith('http') ? user.coverPicture : apiUrl(user.coverPicture)) : coverImg}
             alt="Cover"
             className="w-full h-56 object-cover rounded-3xl"
           />
@@ -17,7 +18,7 @@ export default function DashboardTab({ user, properties }) {
           <div className="absolute left-8 bottom-[-58px] flex items-center gap-4">
             <div className="w-24 h-24 rounded-full border-4 border-white bg-white flex items-center justify-center overflow-hidden shadow-lg">
               <img
-                src={user?.profilePicture || defaultProfile}
+                src={user?.profilePicture ? (user.profilePicture.startsWith('http') ? user.profilePicture : apiUrl(user.profilePicture)) : defaultProfile}
                 alt="Profile"
                 className="w-full h-full object-cover"
               />
@@ -52,7 +53,7 @@ export default function DashboardTab({ user, properties }) {
             {property.verified && (
               <span className="badge bg-green-500 text-white absolute top-3 left-3 z-10">Verified</span>
             )}
-            <img src={property.image ? (property.image.startsWith('http') ? property.image : `http://localhost:5000${property.image}`) : defaultProfile} className="w-full h-48 object-cover rounded-t-3" alt={property.title} />
+            <img src={property.image ? (property.image.startsWith('http') ? property.image : apiUrl(property.image)) : defaultProfile} className="w-full h-48 object-cover rounded-t-3" alt={property.title} />
             <div className="bg-white p-4 rounded-b-3">
               <h4 className="font-bold text-lg mb-2">
                 <Link

@@ -19,9 +19,10 @@ import BookingListTab from "../components/CurrentBookingTab";
 import CurrentBookingTab from "../components/CurrentBookingTab";
 import BookedPropertyTab from "../components/BookedPropertyTab";
 import BookedAgentTab from "../components/BookedAgentTab";
+import { apiUrl } from "../utils/api";
 
 async function fetchUserProfile(token) {
-  const res = await axios.get("http://localhost:5000/api/user/profile", {
+  const res = await axios.get(apiUrl("/api/user/profile"), {
     headers: { Authorization: `Bearer ${token}` },
   });
   return res.data;
@@ -98,7 +99,7 @@ function ProfileEditTab({ user, onUpdate }) {
         if (v) formData.append(k, v);
       });
       const token = localStorage.getItem("thikana_token");
-      await axios.post("http://localhost:5000/api/user/profile", formData, {
+      await axios.post(apiUrl("/api/user/profile"), formData, {
         headers: { Authorization: `Bearer ${token}` },
       });
       // Fetch latest user profile and update UI/localStorage
@@ -181,7 +182,7 @@ export default function Profiles() {
   const fetchProperties = async () => {
     try {
       const token = localStorage.getItem('thikana_token');
-      const res = await axios.get('http://localhost:5000/api/properties/user', {
+      const res = await axios.get(apiUrl('/api/properties/user'), {
         headers: { Authorization: `Bearer ${token}` },
       });
       setProperties(res.data);
@@ -205,7 +206,7 @@ export default function Profiles() {
     if (!window.confirm('Are you sure you want to delete this property?')) return;
     try {
       const token = localStorage.getItem('thikana_token');
-      await axios.delete(`http://localhost:5000/api/properties/${property._id || property.id}`, {
+      await axios.delete(apiUrl(`/api/properties/${property._id || property.id}`), {
         headers: { Authorization: `Bearer ${token}` },
       });
       setProperties((prev) => prev.filter((p) => (p._id || p.id) !== (property._id || property.id)));
@@ -218,7 +219,7 @@ export default function Profiles() {
   const fetchWishlist = async () => {
     try {
       const token = localStorage.getItem('thikana_token');
-      const res = await axios.get('http://localhost:5000/api/wishlist', {
+      const res = await axios.get(apiUrl('/api/wishlist'), {
         headers: { Authorization: `Bearer ${token}` },
       });
       setWishlist(res.data || []);
@@ -414,7 +415,7 @@ export default function Profiles() {
                 onRemove={async (property) => {
                   try {
                     const token = localStorage.getItem('thikana_token');
-                    await axios.delete(`http://localhost:5000/api/wishlist/${property._id || property.id}`, {
+                    await axios.delete(apiUrl(`/api/wishlist/${property._id || property.id}`), {
                       headers: { Authorization: `Bearer ${token}` },
                     });
                     setWishlist(prev => prev.filter(p => (p._id || p.id) !== (property._id || property.id)));

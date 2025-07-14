@@ -4,6 +4,7 @@ import Navbar from "../../components/navbar";
 import bg3 from "../../assect/images/bg/02.jpg"
 import logo from "../../assect/images/logo-dark.png"
 import axios from 'axios';
+import { apiUrl } from "../../utils/api";
 
 const Signup = () => {
     const navigate = useNavigate();
@@ -19,7 +20,7 @@ const Signup = () => {
         const password = document.getElementById('floatingPassword').value;
 
         try {
-            const response = await axios.post('http://localhost:5000/register', {
+            const response = await axios.post(apiUrl('/register'), {
                 name,
                 email,
                 password,

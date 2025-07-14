@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import defaultProfile from "../assect/images/profile-thumb.png";
+import { apiUrl } from "../utils/api";
 
 export default function PropertyListTab({ properties, onEdit, onDelete }) {
   return (
@@ -15,7 +16,7 @@ export default function PropertyListTab({ properties, onEdit, onDelete }) {
               <span className="badge bg-green-500 text-white absolute top-3 left-3 z-10">Verified</span>
             )}
             <img
-              src={property.image ? (property.image.startsWith('http') ? property.image : `http://localhost:5000${property.image}`) : defaultProfile}
+              src={property.image ? (property.image.startsWith('http') ? property.image : apiUrl(property.image)) : defaultProfile}
               className="w-full h-48 object-cover rounded-t-3"
               alt={property.title}
             />

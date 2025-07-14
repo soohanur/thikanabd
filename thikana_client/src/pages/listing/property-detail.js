@@ -13,6 +13,7 @@ import Lightbox from "react-18-image-lightbox";
 import "../../../node_modules/react-18-image-lightbox/style.css";
 import coverImg from "../../assect/images/profile-cover.png";
 import defaultProfile from "../../assect/images/profile-thumb.png";
+import { apiUrl } from "../../utils/api";
 
 export default function PropertyDetails() {
     const params = useParams();
@@ -24,13 +25,13 @@ export default function PropertyDetails() {
 
     useEffect(() => {
         // Fetch property details from backend by _id
-        axios.get(`http://localhost:5000/api/properties/all`)
+        axios.get(apiUrl(`/api/properties/all`))
             .then(res => {
                 const found = res.data.find(item => (item._id === id || item._id?.toString() === id));
                 setData(found);
 
                 if (found && found.userId) {
-                    axios.get(`http://localhost:5000/api/users/${found.userId}`)
+                    axios.get(apiUrl(`/api/users/${found.userId}`))
                         .then(res => setPostedUser(res.data.user))
                         .catch(() => setPostedUser(null));
                 }
@@ -42,8 +43,22 @@ export default function PropertyDetails() {
 
     // Lightbox images: coverImage first, then galleryImages
     const images = [
-        data?.coverImage ? (data.coverImage.startsWith('http') ? data.coverImage : `http://localhost:5000/uploads/${data.coverImage}`) : "",
-        ...(data?.galleryImages ? data.galleryImages.map(img => img.startsWith('http') ? img : `http://localhost:5000/uploads/${img}`) : [])
+        data?.coverImage
+            ? (data.coverImage.startsWith('http')
+                ? data.coverImage
+                : data.coverImage.startsWith('/uploads')
+                    ? apiUrl(data.coverImage)
+                    : apiUrl(`/uploads/${data.coverImage}`))
+            : "",
+        ...(data?.galleryImages
+            ? data.galleryImages.map(img =>
+                img.startsWith('http')
+                    ? img
+                    : img.startsWith('/uploads')
+                        ? apiUrl(img)
+                        : apiUrl(`/uploads/${img}`)
+            )
+            : [])
     ];
 
     const handleMovePrev = () => {
@@ -73,7 +88,13 @@ export default function PropertyDetails() {
                         <a href="#" onClick={e => { e.preventDefault(); setCurrentImageIndex(0); setIsOpen(true); }}>
                             <img
                                 className="rounded-xl"
-                                src={data.coverImage.startsWith('http') ? data.coverImage : `http://localhost:5000/uploads/${data.coverImage}`}
+                                src={data.coverImage
+                                    ? (data.coverImage.startsWith('http')
+                                        ? data.coverImage
+                                        : data.coverImage.startsWith('/uploads')
+                                            ? apiUrl(data.coverImage)
+                                            : apiUrl(`/uploads/${data.coverImage}`))
+                                    : ''}
                                 alt="Cover"
                                 style={{ width: '100%', height: '400px', objectFit: 'cover', objectPosition: 'center center', display: 'block' }}
                             />
@@ -104,7 +125,11 @@ export default function PropertyDetails() {
                                 <div key={idx} style={{ padding: '0 6px' }}>
                                     <a href="#" onClick={e => { e.preventDefault(); setCurrentImageIndex(idx + 1); setIsOpen(true); }}>
                                         <img
-                                            src={img.startsWith('http') ? img : `http://localhost:5000/uploads/${img}`}
+                                            src={img.startsWith('http')
+                                                ? img
+                                                : img.startsWith('/uploads')
+                                                    ? apiUrl(img)
+                                                    : apiUrl(`/uploads/${img}`)}
                                             alt={`Gallery ${idx + 1}`}
                                             style={{ width: '100%', height: '140px', objectFit: 'cover', objectPosition: 'center center', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}
                                         />
@@ -225,7 +250,7 @@ export default function PropertyDetails() {
                                 {postedUser && (
                                     <div className="rounded-3xl overflow-hidden w-full bg-white flex flex-col items-center pt-1 pb-4 relative">
                                         <img
-                                            src={postedUser.coverPicture ? (postedUser.coverPicture.startsWith('http') ? postedUser.coverPicture : `http://localhost:5000${postedUser.coverPicture}`) : coverImg}
+                                            src={postedUser.coverPicture ? (postedUser.coverPicture.startsWith('http') ? postedUser.coverPicture : apiUrl(postedUser.coverPicture)) : coverImg}
                                             alt="Cover"
                                             className="w-full h-40 object-cover rounded-3xl mb-0"
                                             style={{ maxWidth: '100%', borderBottomLeftRadius: '0', borderBottomRightRadius: '0' }}
@@ -240,7 +265,7 @@ export default function PropertyDetails() {
                                         )}
                                         <div className="w-24 h-24 rounded-full border-4 border-white bg-white flex items-center justify-center overflow-hidden shadow-lg mx-auto" style={{ marginTop: '-48px', zIndex: 10 }}>
                                             <img
-                                                src={postedUser.profilePicture ? (postedUser.profilePicture.startsWith('http') || postedUser.profilePicture.startsWith('/uploads/') ? (postedUser.profilePicture.startsWith('http') ? postedUser.profilePicture : `http://localhost:5000${postedUser.profilePicture}`) : `http://localhost:5000/uploads/${postedUser.profilePicture}`) : defaultProfile}
+                                                src={postedUser.profilePicture ? (postedUser.profilePicture.startsWith('http') || postedUser.profilePicture.startsWith('/uploads/') ? (postedUser.profilePicture.startsWith('http') ? postedUser.profilePicture : apiUrl(postedUser.profilePicture)) : apiUrl(`/uploads/${postedUser.profilePicture}`)) : defaultProfile}
                                                 alt="Profile"
                                                 className="w-full h-full object-cover"
                                             />

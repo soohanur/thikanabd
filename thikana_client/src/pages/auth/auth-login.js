@@ -4,6 +4,7 @@ import Navbar from "../../components/navbar";
 import bg3 from "../../assect/images/bg/02.jpg"
 import logo from "../../assect/images/logo-dark.png"
 import axios from 'axios';
+import { apiUrl } from "../../utils/api";
 
 export default function AuthLogin(){
     const navigate = useNavigate();
@@ -15,7 +16,7 @@ export default function AuthLogin(){
         const email = document.getElementById('floatingInput').value;
         const password = document.getElementById('floatingPassword').value;
         try {
-            const response = await axios.post('http://localhost:5000/login', { email, password });
+            const response = await axios.post(apiUrl('/login'), { email, password });
             // Save JWT token and user info
             localStorage.setItem('thikana_token', response.data.token);
             localStorage.setItem('thikana_user', JSON.stringify(response.data.user));

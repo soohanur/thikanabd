@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { apiUrl } from "../utils/api";
 import coverImg from "../assect/images/profile-cover.png";
 import defaultProfile from "../assect/images/profile-thumb.png";
 import Navbar from "../components/navbar";
@@ -16,7 +17,7 @@ export default function PublicProfile() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const res = await axios.get(`http://localhost:5000/api/users/${username}`);
+        const res = await axios.get(apiUrl(`/api/users/${username}`));
         setUser(res.data.user);
         setProperties(res.data.properties || []);
         setLoading(false);
@@ -46,7 +47,7 @@ export default function PublicProfile() {
         <div className="w-full mb-8 relative">
           <div className="rounded-3xl overflow-hidden shadow-lg w-full">
             <img
-              src={user.coverPicture ? (user.coverPicture.startsWith("http") ? user.coverPicture : `http://localhost:5000${user.coverPicture}`) : coverImg}
+              src={user.coverPicture ? (user.coverPicture.startsWith("http") ? user.coverPicture : apiUrl(user.coverPicture)) : coverImg}
               alt="Cover"
               className="w-full h-56 object-cover rounded-3xl"
             />
@@ -62,7 +63,7 @@ export default function PublicProfile() {
             <div className="absolute left-8 bottom-[-58px] flex items-center gap-4">
               <div className="w-24 h-24 rounded-full border-4 border-white bg-white flex items-center justify-center overflow-hidden shadow-lg">
                 <img
-                  src={user.profilePicture ? (user.profilePicture.startsWith("http") ? user.profilePicture : `http://localhost:5000${user.profilePicture}`) : defaultProfile}
+                  src={user.profilePicture ? (user.profilePicture.startsWith("http") ? user.profilePicture : apiUrl(user.profilePicture)) : defaultProfile}
                   alt="Profile"
                   className="w-full h-full object-cover"
                 />
@@ -104,11 +105,11 @@ export default function PublicProfile() {
                 src={property.coverImage
                   ? (property.coverImage.startsWith("http")
                       ? property.coverImage
-                      : `http://localhost:5000/uploads/${property.coverImage}`)
+                      : apiUrl(`/uploads/${property.coverImage}`))
                   : property.image
                     ? (property.image.startsWith("http")
                         ? property.image
-                        : `http://localhost:5000/uploads/${property.image}`)
+                        : apiUrl(`/uploads/${property.image}`))
                     : defaultProfile}
                 className="w-full h-48 object-cover rounded-t-3"
                 alt={property.title}

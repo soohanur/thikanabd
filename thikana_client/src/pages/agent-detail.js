@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import Navbar from "../components/navbar";
 import Footer from "../components/footer";
 import { brokerData } from "../data/data";
+import { apiUrl } from "../utils/api";
 
 export default function AgentDetail() {
     const { id } = useParams();
@@ -76,10 +77,10 @@ export default function AgentDetail() {
                     <div className="row justify-content-center">
                         <div className="col-lg-8 text-center">
                             <img
-                                src={broker.image}
-                                alt="Agent"
-                                className="rounded-circle mb-3"
-                                style={{ width: "150px", height: "150px", objectFit: "cover" }}
+                                src={broker.image.startsWith('http') ? broker.image : apiUrl(broker.image)}
+                                className="img-fluid rounded-circle mb-3"
+                                alt={broker.name}
+                                style={{ width: '120px', height: '120px', objectFit: 'cover' }}
                             />
                             <h2 className="heading fw-bold mb-0">{broker.name}</h2>
                             <p className="text-muted">{broker.description}</p>

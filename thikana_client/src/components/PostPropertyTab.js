@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import LeafletLocationPicker from "../components/LeafletLocationPicker";
+import { apiUrl } from "../utils/api";
 
 const locationOptions = [
   { value: "Dhaka", label: "Dhaka" },
@@ -84,14 +85,14 @@ export default function PostPropertyTab({ user, onSuccess, editProperty }) {
         status: editProperty.status || "",
       });
       if (editProperty.image) {
-        setMainImagePreview(editProperty.image.startsWith("http") ? editProperty.image : `http://localhost:5000${editProperty.image}`);
+        setMainImagePreview(editProperty.image.startsWith("http") ? editProperty.image : apiUrl(editProperty.image));
       } else if (editProperty.coverImage) {
-        setMainImagePreview(editProperty.coverImage.startsWith("http") ? editProperty.coverImage : `http://localhost:5000/uploads/${editProperty.coverImage}`);
+        setMainImagePreview(editProperty.coverImage.startsWith("http") ? editProperty.coverImage : apiUrl(`/uploads/${editProperty.coverImage}`));
       } else {
         setMainImagePreview(null);
       }
       if (editProperty.galleryImages && Array.isArray(editProperty.galleryImages)) {
-        setGalleryPreviews(editProperty.galleryImages.map(img => img.startsWith("http") ? img : `http://localhost:5000/uploads/${img}`));
+        setGalleryPreviews(editProperty.galleryImages.map(img => img.startsWith("http") ? img : apiUrl(`/uploads/${img}`)));
       } else {
         setGalleryPreviews([]);
       }
@@ -153,14 +154,14 @@ export default function PostPropertyTab({ user, onSuccess, editProperty }) {
       });
       const token = localStorage.getItem("thikana_token");
       if (editProperty && editProperty._id) {
-        await fetch(`http://localhost:5000/api/properties/${editProperty._id}`, {
+        await fetch(apiUrl(`/api/properties/${editProperty._id}`), {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
           body: formData,
         });
         setSuccess("Property updated successfully!");
       } else {
-        await fetch("http://localhost:5000/api/properties", {
+        await fetch(apiUrl("/api/properties"), {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
           body: formData,

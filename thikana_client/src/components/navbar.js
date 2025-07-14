@@ -4,6 +4,7 @@ import logoDark from "../assect/images/logo-dark.png";
 import logoLight from "../assect/images/logo-light.png";
 import { FiUser } from "../assect/icons/vander";
 import axios from "axios";
+import { apiUrl } from "../utils/api";
 
 export default function Navbar({ navClass, logolight, menuClass }) {
     const [isMenu, setIsMenu] = useState(false);
@@ -42,7 +43,7 @@ export default function Navbar({ navClass, logolight, menuClass }) {
                 return;
             }
             try {
-                const res = await axios.get('http://localhost:5000/api/messages/conversations', {
+                const res = await axios.get(apiUrl('/api/messages/conversations'), {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 // Count all unread messages (lastMessage sent by other user and not read)

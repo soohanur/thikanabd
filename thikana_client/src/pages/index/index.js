@@ -11,6 +11,7 @@ import { TypeAnimation } from 'react-type-animation';
 import Select from 'react-select'
 import axios from "axios";
 import defaultProfile from '../../assect/images/profile-thumb.png';
+import { apiUrl } from "../../utils/api";
 
 export default function Index(){
 
@@ -97,7 +98,7 @@ export default function Index(){
             try {
                 setUsersLoading(true);
                 setUsersError("");
-                const res = await axios.get("http://localhost:5000/api/users");
+                const res = await axios.get(apiUrl("/api/users"));
                 setUsers(res.data.users || []);
             } catch (err) {
                 setUsersError("Failed to load users");
@@ -329,7 +330,7 @@ export default function Index(){
                     {users.map(user => (
                         <Link key={user._id || user.username} to={`/public-profile/${user.username || user._id}`} className="flex flex-col items-center min-w-[100px]">
                             <img
-                                src={user.profilePicture ? (user.profilePicture.startsWith('http') ? user.profilePicture : `http://localhost:5000${user.profilePicture}`) : defaultProfile}
+                                src={user.profilePicture ? (user.profilePicture.startsWith('http') ? user.profilePicture : apiUrl(user.profilePicture)) : defaultProfile}
                                 alt={user.name}
                                 className="w-16 h-16 rounded-full object-cover border-2 border-green-500 shadow mb-2"
                             />

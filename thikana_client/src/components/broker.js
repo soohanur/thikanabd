@@ -1,4 +1,5 @@
 import React from "react";
+import { apiUrl } from "../utils/api";
 
 import { brokerData } from '../data/data';
 import { Link, useNavigate } from "react-router-dom";
@@ -25,7 +26,7 @@ export default function Broker() {
                     <div className="col-lg-3 col-md-4 col-12" key={index}>
                         <div className="card team team-primary text-center" onClick={() => navigate(`/agent-detail/${index}`)}>
                             <div className="card-img team-image d-inline-block mx-auto rounded-pill avatar avatar-ex-large overflow-hidden">
-                                <img src={item.image} className="img-fluid" alt="" style={{ objectFit: "cover", width: "100%", height: "100%" }} />
+                                <img src={item.image.startsWith('http') ? item.image : apiUrl(item.image)} className="img-fluid" alt="" style={{ objectFit: "cover", width: "100%", height: "100%" }} />
                                 <div className="card-overlay avatar avatar-ex-large rounded-pill"></div>
                             </div>
 

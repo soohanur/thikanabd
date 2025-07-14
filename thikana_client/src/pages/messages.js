@@ -4,6 +4,7 @@ import { useParams } from "react-router-dom";
 import defaultProfile from "../assect/images/profile-thumb.png";
 import Navbar from "../components/navbar";
 import Footer from "../components/footer";
+import { apiUrl } from "../utils/api";
 
 function MessagesPage({ user: propUser }) {
   const { userId } = useParams();
@@ -34,7 +35,7 @@ function MessagesPage({ user: propUser }) {
   useEffect(() => {
     const token = localStorage.getItem("thikana_token");
     if (!token) return;
-    axios.get("http://localhost:5000/api/messages/conversations", {
+    axios.get(apiUrl("/api/messages/conversations"), {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(res => {
@@ -47,7 +48,7 @@ function MessagesPage({ user: propUser }) {
           } else {
             setSelectedConv(null);
           }
-        } // Removed auto-selecting first conversation
+        }
       })
       .catch(handleAxiosError);
   }, [userId]);
@@ -56,7 +57,7 @@ function MessagesPage({ user: propUser }) {
     if (!selectedConv) return;
     const token = localStorage.getItem("thikana_token");
     setLoading(true);
-    axios.get(`http://localhost:5000/api/messages/${selectedConv}`, {
+    axios.get(apiUrl(`/api/messages/${selectedConv}`), {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(res => {
@@ -78,7 +79,7 @@ function MessagesPage({ user: propUser }) {
       await Promise.all(uniqueIds.map(async (id) => {
         if (!infos[id]) {
           try {
-            const res = await axios.get(`http://localhost:5000/api/users/${id}`);
+            const res = await axios.get(apiUrl(`/api/users/${id}`));
             infos[id] = {
               name: res.data.user?.name || 'User',
               profilePicture: res.data.user?.profilePicture || '',
@@ -99,7 +100,7 @@ function MessagesPage({ user: propUser }) {
     const token = localStorage.getItem("thikana_token");
     if (!token) return;
     const fetchConversations = () => {
-      axios.get("http://localhost:5000/api/messages/conversations", {
+      axios.get(apiUrl("/api/messages/conversations"), {
         headers: { Authorization: `Bearer ${token}` },
       })
         .then(res => {
@@ -133,7 +134,7 @@ function MessagesPage({ user: propUser }) {
     const token = localStorage.getItem("thikana_token");
     const fetchMessages = () => {
       setLoading(true);
-      axios.get(`http://localhost:5000/api/messages/${selectedConv}`, {
+      axios.get(apiUrl(`/api/messages/${selectedConv}`), {
         headers: { Authorization: `Bearer ${token}` },
       })
         .then(res => {
@@ -158,12 +159,12 @@ function MessagesPage({ user: propUser }) {
     const otherId = conv.participants.find(id => id !== user?.userId && id !== user?._id);
     if (conv.lastMessage && conv.lastMessage.senderId === otherId && !conv.lastMessage.read) {
       // Mark as read (send a PATCH or POST to backend to update read status)
-      axios.post(`http://localhost:5000/api/messages/${selectedConv}/read`, {}, {
+      axios.post(apiUrl(`/api/messages/${selectedConv}/read`), {}, {
         headers: { Authorization: `Bearer ${token}` },
       })
         .then(() => {
           // Optionally, refresh conversations
-          axios.get("http://localhost:5000/api/messages/conversations", {
+          axios.get(apiUrl("/api/messages/conversations"), {
             headers: { Authorization: `Bearer ${token}` },
           }).then(res => setConversations(res.data));
         })
@@ -184,7 +185,7 @@ function MessagesPage({ user: propUser }) {
       receiverId = userId;
     }
     if (!receiverId) return;
-    await axios.post("http://localhost:5000/api/messages", {
+    await axios.post(apiUrl("/api/messages"), {
       receiverId,
       text: messageText,
     }, {
@@ -193,7 +194,7 @@ function MessagesPage({ user: propUser }) {
       .catch(handleAxiosError);
     setMessageText("");
     // Refresh conversations and select the new/updated conversation
-    axios.get("http://localhost:5000/api/messages/conversations", {
+    axios.get(apiUrl("/api/messages/conversations"), {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(res => {
@@ -204,7 +205,7 @@ function MessagesPage({ user: propUser }) {
       .catch(handleAxiosError);
     // Refresh messages if conversation is now selected
     if (selectedConv) {
-      axios.get(`http://localhost:5000/api/messages/${selectedConv}`, {
+      axios.get(apiUrl(`/api/messages/${selectedConv}`), {
         headers: { Authorization: `Bearer ${token}` },
       })
         .then(res => {
@@ -233,7 +234,7 @@ function MessagesPage({ user: propUser }) {
                   className={`flex items-center gap-3 p-2 rounded-xl cursor-pointer mb-2 ${selectedConv === conv.conversationId ? 'bg-green-100' : ''}`}
                   style={{ background: isUnread ? 'rgb(255 230 230)' : undefined }}
                   onClick={() => setSelectedConv(conv.conversationId)}>
-                <img src={info.profilePicture ? (info.profilePicture.startsWith('http') ? info.profilePicture : `http://localhost:5000${info.profilePicture}`) : defaultProfile} alt="avatar" className="w-10 h-10 rounded-full object-cover" />
+                <img src={info.profilePicture ? (info.profilePicture.startsWith('http') ? info.profilePicture : apiUrl(info.profilePicture)) : defaultProfile} alt="avatar" className="w-10 h-10 rounded-full object-cover" />
                 <div>
                   <div className="font-semibold">{info.name || otherId?.slice(-6) || "User"}</div>
                   <div className="text-xs text-gray-500">{conv.lastMessage?.text?.slice(0, 30) || "No messages yet"}</div>
