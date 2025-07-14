@@ -11,55 +11,54 @@ import Navbar from "../components/navbar";
 import Footer from "../components/footer";
 
 const locationOptions = [
-  { value: "1", label: "Dhaka" },
-  { value: "2", label: "Rajshahi" },
+  { value: "Dhaka", label: "Dhaka" },
+  { value: "Rajshahi", label: "Rajshahi" },
 ];
 const areaOptions = {
   Dhaka: [
-    { value: "1", label: "Gazipur" },
-    { value: "2", label: "Gulshan" },
-    { value: "3", label: "Badda" },
-    { value: "4", label: "Abdullahpur" },
-    { value: "5", label: "Farmgate" },
-    { value: "6", label: "Mirpur 1" },
-    { value: "7", label: "Mirpur 2" },
-    { value: "8", label: "Mirpur 10" },
+    { value: "Gazipur", label: "Gazipur" },
+    { value: "Gulshan", label: "Gulshan" },
+    { value: "Badda", label: "Badda" },
+    { value: "Abdullahpur", label: "Abdullahpur" },
+    { value: "Farmgate", label: "Farmgate" },
+    { value: "Mirpur 1", label: "Mirpur 1" },
+    { value: "Mirpur 2", label: "Mirpur 2" },
+    { value: "Mirpur 10", label: "Mirpur 10" },
   ],
   Rajshahi: [
-    { value: "1", label: "Zero Point" },
-    { value: "2", label: "Rani Bazar" },
-    { value: "3", label: "New Market" },
-    { value: "4", label: "Railgate" },
-    { value: "5", label: "Alupotti" },
-    { value: "6", label: "Talaimari" },
-    { value: "7", label: "Kajla" },
-    { value: "8", label: "Binodpur" },
-    { value: "9", label: "Talaimari" },
-    { value: "10", label: "Khorkhori" },
+    { value: "Zero Point", label: "Zero Point" },
+    { value: "Rani Bazar", label: "Rani Bazar" },
+    { value: "New Market", label: "New Market" },
+    { value: "Railgate", label: "Railgate" },
+    { value: "Alupotti", label: "Alupotti" },
+    { value: "Talaimari", label: "Talaimari" },
+    { value: "Kajla", label: "Kajla" },
+    { value: "Binodpur", label: "Binodpur" },
+    { value: "Khorkhori", label: "Khorkhori" },
   ],
 };
 // Category and Property Type options (single select)
 const categoryOptions = [
-  { value: '1', label: 'Houses' },
-  { value: '2', label: 'Apartment' },
-  { value: '3', label: 'Offices' },
-  { value: '4', label: 'Sub-let' },
+  { value: 'Houses', label: 'Houses' },
+  { value: 'Apartment', label: 'Apartment' },
+  { value: 'Offices', label: 'Offices' },
+  { value: 'Sub-let', label: 'Sub-let' },
 ];
 const propertyTypeOptions = [
-    { value: '1', label: 'Family' },
-    { value: '2', label: 'Bachelor' },
-    { value: '3', label: 'Office' }
+    { value: 'Family', label: 'Family' },
+    { value: 'Bachelor', label: 'Bachelor' },
+    { value: 'Office', label: 'Office' }
 ];
 const bedBathOptions = Array.from({ length: 10 }, (_, i) => (i + 1).toString());
 const buyCategoryOptions = [
-  { value: '1', label: 'Land' },
-  { value: '2', label: 'Houses' },
-  { value: '3', label: 'Apartments' },
+  { value: 'Land', label: 'Land' },
+  { value: 'Houses', label: 'Houses' },
+  { value: 'Apartments', label: 'Apartments' },
 ];
 const buyStatusOptions = [
-  { value: '1', label: 'New' },
-  { value: '2', label: 'Used' },
-  { value: '3', label: 'Renovated' },
+  { value: 'New', label: 'New' },
+  { value: 'Used', label: 'Used' },
+  { value: 'Renovated', label: 'Renovated' },
 ];
 
 function PostPropertyTab({ user, onSuccess, editProperty }) {

@@ -29,71 +29,67 @@ export default function Index(){
     const handleFind = (e) => {
         e.preventDefault();
         const filters = {
-            location: selectedLocation?.label || "",
-            area: areaOptions.find(option => option.value === selectedArea?.value)?.label || "",
-            category: selectedCategory?.label || "",
-            type: selectedType?.label || "",
+            location: selectedLocation?.value || "",
+            area: selectedArea?.value || "",
+            category: selectedCategory?.value || "",
+            type: selectedType?.value || "",
         };
         navigate("/grid-sidebar", { state: filters });
     };
 
+    // Updated options with value===label
     const categories = [
-        { value: '1', label: 'Houses' },
-        { value: '2', label: 'Apartment' },
-        { value: '3', label: 'Offices' },
-        { value: '4', label: 'Sub-let' },
+        { value: 'Houses', label: 'Houses' },
+        { value: 'Apartment', label: 'Apartment' },
+        { value: 'Offices', label: 'Offices' },
+        { value: 'Sub-let', label: 'Sub-let' },
     ];
-    
     const categories2 = [
-        { value: '1', label: 'Land' },
-        { value: '2', label: 'Houses' },
-        { value: '3', label: 'Apartments' }
+        { value: 'Land', label: 'Land' },
+        { value: 'Houses', label: 'Houses' },
+        { value: 'Apartments', label: 'Apartments' }
     ];
     const location = [
-        { value: '1', label: 'Dhaka' },
-        { value: '2', label: 'Rajshahi' },
+        { value: 'Dhaka', label: 'Dhaka' },
+        { value: 'Rajshahi', label: 'Rajshahi' },
     ];
-
     const areasByLocation = {
-        '1': [
-            { value: '1', label: 'Gazipur' },
-            { value: '2', label: 'Gultion' },
-            { value: '3', label: 'Badda' },
-            { value: '4', label: 'Abdulapur' },
-            { value: '5', label: 'Framgate' },
-            { value: '6', label: 'Mirpur 1' },
-            { value: '7', label: 'Mirpur 2' },
-            { value: '8', label: 'Mirpur 10' },
+        'Dhaka': [
+            { value: 'Gazipur', label: 'Gazipur' },
+            { value: 'Gulshan', label: 'Gulshan' },
+            { value: 'Badda', label: 'Badda' },
+            { value: 'Abdullahpur', label: 'Abdullahpur' },
+            { value: 'Farmgate', label: 'Farmgate' },
+            { value: 'Mirpur 1', label: 'Mirpur 1' },
+            { value: 'Mirpur 2', label: 'Mirpur 2' },
+            { value: 'Mirpur 10', label: 'Mirpur 10' },
         ],
-        '2': [
-            { value: '1', label: 'Zero Point' },
-            { value: '2', label: 'Rani Bazar' },
-            { value: '3', label: 'New Market' },
-            { value: '4', label: 'Railgate' },
-            { value: '5', label: 'Alupotti' },
-            { value: '6', label: 'Talaimari' },
-            { value: '7', label: 'kajla' },
-            { value: '8', label: 'binodpur' },
-            { value: '9', label: 'Talaimari' },
-            { value: '10', label: 'khorkhori' },
+        'Rajshahi': [
+            { value: 'Zero Point', label: 'Zero Point' },
+            { value: 'Rani Bazar', label: 'Rani Bazar' },
+            { value: 'New Market', label: 'New Market' },
+            { value: 'Railgate', label: 'Railgate' },
+            { value: 'Alupotti', label: 'Alupotti' },
+            { value: 'Talaimari', label: 'Talaimari' },
+            { value: 'Kajla', label: 'Kajla' },
+            { value: 'Binodpur', label: 'Binodpur' },
+            { value: 'Khorkhori', label: 'Khorkhori' },
         ]
     };
-
     const handleLocationChange = (selectedOption) => {
         setSelectedLocation(selectedOption);
         setAreaOptions(areasByLocation[selectedOption.value] || []);
+        setSelectedArea(null);
     };
-
     const Status = [
-        { value: '1', label: 'New' },
-        { value: '2', label: 'Used' },
-        { value: '3', label: 'Renovated' },
+        { value: 'New', label: 'New' },
+        { value: 'Used', label: 'Used' },
+        { value: 'Renovated', label: 'Renovated' },
     ];
-
     const Type = [
-        { value: '1', label: 'Family' },
-        { value: '2', label: 'Bachelor' },
-        { value: '2', label: 'Office' },
+        { value: 'Family', label: 'Family' },
+        { value: 'Bachelor', label: 'Bachelor' },
+        { value: 'Office', label: 'Office' },
     ];
 
     React.useEffect(() => {
@@ -230,7 +226,7 @@ export default function Index(){
                                                     </div>
             
                                                     <div className="col-lg-3 col-md-6 col-12">
-                                                        <input type="submit" id="search" name="search" style={{height: '48px'}} className="btn btn-primary searchbtn w-100" value="Find" onClick={handleFind}/>
+                                                        <input type="submit" id="search" name="search" style={{height: '48px'}} className="btn btn-primary searchbtn w-100" value="Find Rent Property" onClick={handleFind}/>
                                                     </div>
                                                 </div>
                                             </div>
@@ -249,7 +245,7 @@ export default function Index(){
                                                             <div className="filter-search-form position-relative filter-border bg-light">
                                                                 <i className="fa-solid fa-location-dot fea icon-ex-md icons"></i>
                                                                 <Select 
-                                                                    className="form-input filter-input-box bg-gray-50 dark:bg-slate-800 border-0" 
+                                                                    className="form-input filter-input-box bg-gray-50  border-0" 
                                                                     options={location} 
                                                                     onChange={handleLocationChange} 
                                                                 />
@@ -263,7 +259,7 @@ export default function Index(){
                                                             <div className="filter-search-form position-relative filter-border bg-light">
                                                             <i className="fa-solid fa-map-signs fea icon-ex-md icons"></i>
                                                                 <Select 
-                                                                    className="form-input filter-input-box bg-gray-50 dark:bg-slate-800 border-0" 
+                                                                    className="form-input filter-input-box bg-gray-50  border-0" 
                                                                     options={areaOptions} 
                                                                     onChange={setSelectedArea}
                                                                 />
@@ -277,7 +273,7 @@ export default function Index(){
                                                             <div className="filter-search-form position-relative filter-border bg-light">
                                                             <i className="fa-solid fa-building fea icon-ex-md icons"></i>
                                                                 <Select 
-                                                                    className="form-input filter-input-box bg-gray-50 dark:bg-slate-800 border-0" 
+                                                                    className="form-input filter-input-box bg-gray-50  border-0" 
                                                                     options={categories2} 
                                                                     onChange={setSelectedCategory}
                                                                 />
@@ -291,7 +287,7 @@ export default function Index(){
                                                             <div className="filter-search-form position-relative filter-border bg-light">
                                                             <i className="fa-solid fa-tag fea icon-ex-md icons"></i>
                                                                 <Select 
-                                                                    className="form-input filter-input-box bg-gray-50 dark:bg-slate-800 border-0" 
+                                                                    className="form-input filter-input-box bg-gray-50 border-0" 
                                                                     options={Status} 
                                                                     onChange={setSelectedType}
                                                                 />
@@ -300,7 +296,7 @@ export default function Index(){
                                                     </div>
             
                                                     <div className="col-lg-3 col-md-6 col-12">
-                                                        <input type="submit" id="search" name="Find" style={{height: '48px'}} className="btn btn-primary searchbtn w-100" value="Find Property" onClick={handleFind}/>
+                                                        <input type="submit" id="search" name="Find" style={{height: '48px'}} className="btn btn-primary searchbtn w-100" value="Find Selling Property" onClick={handleFind}/>
                                                     </div>
                                                 </div>
                                             </div>

@@ -1,43 +1,61 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
+import axios from "axios";
 
 import bg3 from "../../assect/images/property/3.jpg";
 
 import Navbar from "../../components/navbar";
 import Footer from "../../components/footer";
 
-import { propertyData } from "../../data/data";
-
 export default function GridSidebar() {
     // State for filters
     const [filters, setFilters] = useState({
         price: 100000,
+        size: 0,
+        type: "",
         beds: "",
         baths: "",
         verified: false,
         category: "",
+        propertyType: "",
         location: "",
         area: "",
     });
 
-    const [filteredProperties, setFilteredProperties] = useState(propertyData);
+    // State for all properties from backend
+    const [properties, setProperties] = useState([]);
+    const [filteredProperties, setFilteredProperties] = useState([]);
 
     const location = useLocation();
 
+    // Fetch all properties from backend
     useEffect(() => {
-        if (location.state) {
+        axios.get("http://localhost:5000/api/properties/all")
+            .then(res => {
+                setProperties(res.data);
+                setFilteredProperties(res.data);
+            })
+            .catch(() => {
+                setProperties([]);
+                setFilteredProperties([]);
+            });
+    }, []);
+
+    // Filter by location.state if present
+    useEffect(() => {
+        if (location.state && properties.length > 0) {
             const { location: loc, area, category, type } = location.state;
-            const filtered = propertyData.filter((property) => {
+            const filtered = properties.filter((property) => {
                 return (
                     (loc === "" || property.location === loc) &&
                     (area === "" || property.area === area) &&
                     (category === "" || property.category === category) &&
-                    (type === "" || property.type === type)
+                    (type === undefined || property.type === type)
                 );
             });
             setFilteredProperties(filtered);
         }
-    }, [location.state]);
+    }, [location.state, properties]);
 
     // Handle filter changes
     const handleFilterChange = (e) => {
@@ -48,39 +66,94 @@ export default function GridSidebar() {
         }));
     };
 
-    // Apply filters when the button is clicked
-    const applyFilters = () => {
-        const filtered = propertyData.filter((property) => {
+    // Add a reset filters function
+    const resetFilters = () => {
+        setFilters({
+            price: 100000,
+            size: 0,
+            type: "",
+            beds: "",
+            baths: "",
+            verified: false,
+            category: "",
+            propertyType: "",
+            location: "",
+            area: "",
+        });
+    };
+
+    // Real-time filter: update filteredProperties whenever filters or properties change
+    useEffect(() => {
+        const filtered = properties.filter((property) => {
+            // Fix type case sensitivity
+            const typeMatch = !filters.type || (property.type && property.type.toLowerCase() === filters.type.toLowerCase());
+            // Beds/Baths: handle 5+ option
+            const bedsMatch = !filters.beds || (filters.beds === "5" ? property.beds >= 5 : property.beds === parseInt(filters.beds));
+            const bathsMatch = !filters.baths || (filters.baths === "5" ? property.baths >= 5 : property.baths === parseInt(filters.baths));
             return (
-                property.price <= filters.price &&
-                (filters.beds === "" || property.beds === parseInt(filters.beds)) &&
-                (filters.baths === "" || property.baths === parseInt(filters.baths)) &&
+                (filters.price === 0 || property.price <= filters.price) &&
+                (filters.size === 0 || property.size >= filters.size) &&
+                typeMatch &&
+                bedsMatch &&
+                bathsMatch &&
                 (!filters.verified || property.verified) &&
                 (filters.category === "" || property.category === filters.category) &&
+                (filters.propertyType === "" || property.propertyType === filters.propertyType) &&
                 (filters.location === "" || property.location === filters.location) &&
                 (filters.area === "" || property.area === filters.area)
             );
         });
-        setFilteredProperties(filtered); // Update the filtered properties
+        filtered.sort((a, b) => {
+            if (a.verified && !b.verified) return -1;
+            if (!a.verified && b.verified) return 1;
+            return (b._id?.toString() || '').localeCompare(a._id?.toString() || '');
+        });
+        setFilteredProperties(filtered);
+    }, [filters, properties]);
+
+    // Area options for dynamic area select
+    const areaOptions = {
+        Dhaka: [
+            { value: "Gazipur", label: "Gazipur" },
+            { value: "Gulshan", label: "Gulshan" },
+            { value: "Badda", label: "Badda" },
+            { value: "Abdullahpur", label: "Abdullahpur" },
+            { value: "Farmgate", label: "Farmgate" },
+            { value: "Mirpur 1", label: "Mirpur 1" },
+            { value: "Mirpur 2", label: "Mirpur 2" },
+            { value: "Mirpur 10", label: "Mirpur 10" },
+        ],
+        Rajshahi: [
+            { value: "Zero Point", label: "Zero Point" },
+            { value: "Rani Bazar", label: "Rani Bazar" },
+            { value: "New Market", label: "New Market" },
+            { value: "Railgate", label: "Railgate" },
+            { value: "Alupotti", label: "Alupotti" },
+            { value: "Talaimari", label: "Talaimari" },
+            { value: "Kajla", label: "Kajla" },
+            { value: "Binodpur", label: "Binodpur" },
+            { value: "Khorkhori", label: "Khorkhori" },
+        ],
     };
+
+    const [areaList, setAreaList] = useState([]);
+
+    useEffect(() => {
+        if (filters.location && areaOptions[filters.location]) {
+            setAreaList(areaOptions[filters.location]);
+        } else {
+            setAreaList([]);
+        }
+        // Reset area if location changes
+        setFilters((prev) => ({ ...prev, area: "" }));
+        // eslint-disable-next-line
+    }, [filters.location]);
 
     return (
         <>
             <Navbar navClass="defaultscroll sticky" menuClass="navigation-menu nav-left" />
-            <section className="bg-half-170 d-table w-100" style={{ backgroundImage: `url(${bg3})`, objectFit: "cover" } }>
-                <div className="bg-overlay bg-gradient-overlay-2"></div>
-                <div className="container">
-                    <div className="row mt-5 justify-content-center">
-                        <div className="col-12">
-                            <div className="title-heading text-center">
-                                <p className="text-white-50 para-desc mx-auto mb-0">Find your dream property</p>
-                                <h5 className="heading fw-semibold mb-0 sub-heading text-white title-dark">All Properties</h5>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-            <div className="position-relative">
+            
+            <div className="position-relative mt-3">
                 <div className="shape overflow-hidden text-white">
                     <svg viewBox="0 0 2880 48" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path
@@ -95,139 +168,180 @@ export default function GridSidebar() {
                     <div className="row g-4">
                         {/* Sidebar */}
                         <div className="col-lg-4 col-md-6 col-12">
-                            <div className="card bg-white p-4 rounded-3 shadow sticky-bar">
-                                {/* Price Range */}
-                                <div className="mt-4">
-                                    <h6 className="mb-0">Price Range</h6>
-                                    <input
-                                        type="range"
-                                        className="form-range mt-2"
-                                        min="1000"
-                                        max="100000"
-                                        step="1000"
-                                        name="price"
-                                        value={filters.price}
-                                        onChange={handleFilterChange}
-                                    />
-                                    <p className="text-muted small">Up to ৳{filters.price}</p>
-                                </div>
-
-                                {/* Beds */}
-                                <div className="mt-4">
-                                    <h6 className="mb-0">Bedroom </h6>
-                                    <select
-                                        className="form-select form-control border mt-2"
-                                        name="beds"
-                                        value={filters.beds}
-                                        onChange={handleFilterChange}
-                                    >
-                                        <option value="">Any</option>
-                                        <option value="1">1 Bed</option>
-                                        <option value="2">2 Beds</option>
-                                        <option value="3">3 Beds</option>
-                                        <option value="4">4 Beds</option>
-                                        <option value="5">5+ Beds</option>
-                                    </select>
-                                </div>
-
-                                {/* Baths */}
-                                <div className="mt-4">
-                                    <h6 className="mb-0">Bathroom</h6>
-                                    <select
-                                        className="form-select form-control border mt-2"
-                                        name="baths"
-                                        value={filters.baths}
-                                        onChange={handleFilterChange}
-                                    >
-                                        <option value="">Any</option>
-                                        <option value="1">1 Bath</option>
-                                        <option value="2">2 Baths</option>
-                                        <option value="3">3 Baths</option>
-                                        <option value="4">4 Baths</option>
-                                        <option value="5">5+ Baths</option>
-                                    </select>
-                                </div>
-
+                            <div className="card bg-white p-4 rounded-4 shadow sticky-bar" style={{border:'1px solid #e5e7eb', boxShadow:'0 2px 16px 0 #e5e7eb'}}>
+                                <h5 className="mb-4 font-bold text-lg text-green-700 flex items-center gap-2"><i className="mdi mdi-filter-variant"></i> Filter Properties</h5>
                                 {/* Verified */}
-                                <div className="mt-4">
-                                    <h6 className="mb-0">Verified</h6>
-                                    <div className="form-check">
+                                <div className="mb-4 flex items-center gap-2">
+                                    <label className="font-semibold mb-0">Verified</label>
+                                    <label className="inline-flex relative items-center cursor-pointer">
                                         <input
-                                            className="form-check-input"
                                             type="checkbox"
+                                            className="sr-only peer"
                                             id="verified"
                                             name="verified"
                                             checked={filters.verified}
                                             onChange={handleFilterChange}
                                         />
-                                        <label className="form-check-label" htmlFor="verified">
-                                            Verified Listings
-                                        </label>
+                                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-green-500 rounded-full peer peer-checked:bg-green-600 transition-all"></div>
+                                        <span className="ml-2 text-sm text-gray-600">Only show verified</span>
+                                    </label>
+                                </div>
+                                {/* Price Range */}
+                                <div className="mb-4">
+                                    <label className="mb-1 font-semibold">Current Price</label>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-xs text-gray-500">৳1k</span>
+                                        <input
+                                            type="range"
+                                            className="form-range flex-1 accent-green-600"
+                                            min="1000"
+                                            max="100000"
+                                            step="1000"
+                                            name="price"
+                                            value={filters.price}
+                                            onChange={handleFilterChange}
+                                        />
+                                        <span className="text-xs text-gray-500">৳100k</span>
+                                    </div>
+                                    <div className="text-green-700 font-bold text-sm mt-1">Up to ৳{filters.price}</div>
+                                </div>
+                                {/* Size Range */}
+                                <div className="mb-4">
+                                    <label className="mb-1 font-semibold">Size (sq.ft)</label>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-xs text-gray-500">0</span>
+                                        <input
+                                            type="range"
+                                            className="form-range flex-1 accent-green-600"
+                                            min="0"
+                                            max="10000"
+                                            step="100"
+                                            name="size"
+                                            value={filters.size}
+                                            onChange={handleFilterChange}
+                                        />
+                                        <span className="text-xs text-gray-500">10k+</span>
+                                    </div>
+                                    <div className="text-green-700 font-bold text-sm mt-1">From {filters.size} sq.ft</div>
+                                </div>
+                                {/* Type */}
+                                <div className="mb-4">
+                                    <label className="mb-1 font-semibold">Type</label>
+                                    <select
+                                        className="form-select border rounded px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                        name="type"
+                                        value={filters.type}
+                                        onChange={handleFilterChange}
+                                    >
+                                        <option value="">Any</option>
+                                        <option value="Rent">Rent</option>
+                                        <option value="Buy">Buy</option>
+                                    </select>
+                                </div>
+                                
+                                {/* Beds & Baths in one row */}
+                                <div className="mb-4 flex gap-3">
+                                    <div className="flex-1">
+                                        <label className="mb-1 font-semibold">Beds</label>
+                                        <select
+                                            className="form-select border rounded px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                            name="beds"
+                                            value={filters.beds}
+                                            onChange={handleFilterChange}
+                                        >
+                                            <option value="">Any</option>
+                                            <option value="1">1 Bed</option>
+                                            <option value="2">2 Beds</option>
+                                            <option value="3">3 Beds</option>
+                                            <option value="4">4 Beds</option>
+                                            <option value="5">5+ Beds</option>
+                                        </select>
+                                    </div>
+                                    <div className="flex-1">
+                                        <label className="mb-1 font-semibold">Baths</label>
+                                        <select
+                                            className="form-select border rounded px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                            name="baths"
+                                            value={filters.baths}
+                                            onChange={handleFilterChange}
+                                        >
+                                            <option value="">Any</option>
+                                            <option value="1">1 Bath</option>
+                                            <option value="2">2 Baths</option>
+                                            <option value="3">3 Baths</option>
+                                            <option value="4">4 Baths</option>
+                                            <option value="5">5+ Baths</option>
+                                        </select>
                                     </div>
                                 </div>
-
-                                {/* Categories */}
-                                <div className="mt-4">
-                                    <h6 className="mb-0">Categories</h6>
-                                    <select
-                                        className="form-select form-control border mt-2"
-                                        name="category"
-                                        value={filters.category}
-                                        onChange={handleFilterChange}
-                                    >
-                                        <option value="">Any</option>
-                                        <option value="Houses">Houses</option>
-                                        <option value="Apartment">Apartment</option>
-                                        <option value="Offices">Offices</option>
-                                        <option value="Sub-let">Sub-let</option>
-                                    </select>
+                                
+                                {/* Category & Property Type in one row */}
+                                <div className="mb-4 flex gap-3">
+                                    <div className="flex-1">
+                                        <label className="mb-1 font-semibold">Category</label>
+                                        <select
+                                            className="form-select border rounded px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                            name="category"
+                                            value={filters.category}
+                                            onChange={handleFilterChange}
+                                        >
+                                            <option value="">Any</option>
+                                            <option value="Houses">Houses</option>
+                                            <option value="Apartment">Apartment</option>
+                                            <option value="Offices">Offices</option>
+                                            <option value="Sub-let">Sub-let</option>
+                                        </select>
+                                    </div>
+                                    <div className="flex-1">
+                                        <label className="mb-1 font-semibold">Property Type</label>
+                                        <select
+                                            className="form-select border rounded px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                            name="propertyType"
+                                            value={filters.propertyType}
+                                            onChange={handleFilterChange}
+                                        >
+                                            <option value="">Any</option>
+                                            <option value="Family">Family</option>
+                                            <option value="Bachelor">Bachelor</option>
+                                            <option value="Office">Office</option>
+                                        </select>
+                                    </div>
                                 </div>
-
-                                {/* Location */}
-                                <div className="mt-4">
-                                    <h6 className="mb-0">Location</h6>
-                                    <select
-                                        className="form-select form-control border mt-2"
-                                        name="location"
-                                        value={filters.location}
-                                        onChange={handleFilterChange}
-                                    >
-                                        <option value="">Any</option>
-                                        <option value="Dhaka">Dhaka</option>
-                                        <option value="Rajshahi">Rajshahi</option>
-                                        <option value="Chattogram">Chattogram</option>
-                                        <option value="Sylhet">Sylhet</option>
-                                        <option value="Khulna">Khulna</option>
-                                        <option value="Barishal">Barishal</option>
-                                    </select>
+                                {/* Location & Area in one row */}
+                                <div className="mb-4 flex gap-3">
+                                    <div className="flex-1">
+                                        <label className="mb-1 font-semibold">Location</label>
+                                        <select
+                                            className="form-select border rounded px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                            name="location"
+                                            value={filters.location}
+                                            onChange={handleFilterChange}
+                                        >
+                                            <option value="">Any</option>
+                                            <option value="Dhaka">Dhaka</option>
+                                            <option value="Rajshahi">Rajshahi</option>
+                                        </select>
+                                    </div>
+                                    <div className="flex-1">
+                                        <label className="mb-1 font-semibold">Area</label>
+                                        <select
+                                            className="form-select border rounded px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                            name="area"
+                                            value={filters.area}
+                                            onChange={handleFilterChange}
+                                            disabled={!filters.location}
+                                        >
+                                            <option value="">Any</option>
+                                            {areaList.map(opt => (
+                                                <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                            ))}
+                                        </select>
+                                    </div>
                                 </div>
-
-                                {/* Area */}
-                                <div className="mt-4">
-                                    <h6 className="mb-0">Area</h6>
-                                    <select
-                                        className="form-select form-control border mt-2"
-                                        name="area"
-                                        value={filters.area}
-                                        onChange={handleFilterChange}
-                                    >
-                                        <option value="">Any</option>
-                                        <option value="Zero Point">Zero Point</option>
-                                        <option value="Rani Bazar">Rani Bazar</option>
-                                        <option value="New Market">New Market</option>
-                                        <option value="Railgate">Railgate</option>
-                                        <option value="Alupotti">Alupotti</option>
-                                        <option value="Talaimari">Talaimari</option>
-                                        <option value="Kajla">Kajla</option>
-                                        <option value="Binodpur">Binodpur</option>
-                                        <option value="Khorkhori">Khorkhori</option>
-                                    </select>
-                                </div>
-
-                                {/* Apply Filter Button */}
-                                <div className="mt-4">
-                                    <button className="btn btn-primary w-100" onClick={applyFilters}>
-                                        Apply Filter
+                                {/* Reset Button */}
+                                <div className="mt-6 flex justify-end">
+                                    <button type="button" className="btn btn-outline-success px-4 py-2 rounded font-semibold border border-green-600 text-green-700 hover:bg-green-50 transition" onClick={resetFilters}>
+                                        Reset Filters
                                     </button>
                                 </div>
                             </div>
@@ -237,7 +351,7 @@ export default function GridSidebar() {
                         <div className="col-lg-8 col-md-6 col-12">
                             <div className="row g-4">
                                 {filteredProperties.map((item, index) => (
-                                    <div className="col-lg-6 col-12" key={index}>
+                                    <div className="col-lg-6 col-12" key={item._id || item.id || index}>
                                         <div className="card property border-0 shadow position-relative overflow-hidden rounded-3">
                                             <div className="property-image position-relative overflow-hidden shadow">
                                                 {item.verified && (
@@ -245,11 +359,16 @@ export default function GridSidebar() {
                                                         Verified
                                                     </span>
                                                 )}
-                                                <img src={item.image} className="img-fluid" alt="" />
+                                                <img 
+                                                    src={item.coverImage ? (item.coverImage.startsWith('http') ? item.coverImage : `http://localhost:5000/uploads/${item.coverImage}`) : item.image || ''} 
+                                                    className="img-fluid" 
+                                                    alt={item.title || ''} 
+                                                    style={{ width: '100%', height: '220px', objectFit: 'cover', objectPosition: 'center center', borderRadius: '12px' }}
+                                                />
                                             </div>
                                             <div className="card-body content p-4">
                                                 <Link
-                                                    to={`/property-detail/${item.id}`}
+                                                    to={`/property-detail/${item._id || item.id}`}
                                                     className="title fs-5 text-dark fw-medium"
                                                 >
                                                     {item.title}
@@ -280,13 +399,13 @@ export default function GridSidebar() {
                                                     <li className="list-inline-item mb-0 text-muted">
                                                         <span className="text-muted">Rating</span>
                                                         <ul className="fw-medium text-warning list-unstyled mb-0">
-                                                            {[...Array(Math.floor(item.rating))].map((_, i) => (
+                                                            {[...Array(Math.floor(item.rating || 0))].map((_, i) => (
                                                                 <li key={i} className="list-inline-item mb-0">
                                                                     <i className="mdi mdi-star"></i>
                                                                 </li>
                                                             ))}
                                                             <li className="list-inline-item mb-0 text-dark">
-                                                                {item.rating} ({item.reviews})
+                                                                {item.rating} ({item.reviews?.length || item.reviews || 0})
                                                             </li>
                                                         </ul>
                                                     </li>
