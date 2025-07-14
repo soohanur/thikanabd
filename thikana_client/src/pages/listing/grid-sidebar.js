@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import axios from "axios";
 
@@ -27,6 +27,7 @@ export default function GridSidebar() {
     const [filteredProperties, setFilteredProperties] = useState([]);
 
     const location = useLocation();
+    const initializedFromState = useRef(false);
 
     // Fetch all properties from backend
     useEffect(() => {
@@ -40,6 +41,36 @@ export default function GridSidebar() {
                 setFilteredProperties([]);
             });
     }, []);
+
+    // Set filters from location.state on first load only
+    useEffect(() => {
+        if (
+            location.state &&
+            !initializedFromState.current &&
+            properties.length > 0
+        ) {
+            let { location: loc, area, category, type, propertyType, beds, baths } = location.state;
+            // Normalize propertyType to match select options
+            if (propertyType) {
+                const validTypes = ["Family", "Bachelor", "Office"];
+                const found = validTypes.find(
+                    t => t.toLowerCase() === propertyType.toLowerCase().trim()
+                );
+                propertyType = found || "";
+            }
+            setFilters(prev => ({
+                ...prev,
+                location: loc || "",
+                area: area || "",
+                category: category || "",
+                type: type || "",
+                propertyType: propertyType || "",
+                beds: beds || "",
+                baths: baths || "",
+            }));
+            initializedFromState.current = true;
+        }
+    }, [location.state, properties]);
 
     // Filter by location.state if present
     useEffect(() => {
@@ -141,11 +172,19 @@ export default function GridSidebar() {
     useEffect(() => {
         if (filters.location && areaOptions[filters.location]) {
             setAreaList(areaOptions[filters.location]);
+            // Only reset area if location changed and area is not in the new list
+            if (
+                filters.area &&
+                !areaOptions[filters.location].some(opt => opt.value === filters.area)
+            ) {
+                setFilters((prev) => ({ ...prev, area: "" }));
+            }
         } else {
             setAreaList([]);
+            if (filters.area) {
+                setFilters((prev) => ({ ...prev, area: "" }));
+            }
         }
-        // Reset area if location changes
-        setFilters((prev) => ({ ...prev, area: "" }));
         // eslint-disable-next-line
     }, [filters.location]);
 
@@ -339,8 +378,8 @@ export default function GridSidebar() {
                                     </div>
                                 </div>
                                 {/* Reset Button */}
-                                <div className="mt-6 flex justify-end">
-                                    <button type="button" className="btn btn-outline-success px-4 py-2 rounded font-semibold border border-green-600 text-green-700 hover:bg-green-50 transition" onClick={resetFilters}>
+                                <div className="mt-6 flex justify-frist ">
+                                    <button type="button" className="btn  btn-outline-success px-4 py-2 rounded-full font-semibold border border-green-600 text-green-700 hover:bg-green-50 transition" onClick={resetFilters}>
                                         Reset Filters
                                     </button>
                                 </div>

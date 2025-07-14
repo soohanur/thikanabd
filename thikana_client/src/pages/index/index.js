@@ -32,7 +32,7 @@ export default function Index(){
             location: selectedLocation?.value || "",
             area: selectedArea?.value || "",
             category: selectedCategory?.value || "",
-            type: selectedType?.value || "",
+            propertyType: selectedType?.value || "", // <-- changed from type to propertyType
         };
         navigate("/grid-sidebar", { state: filters });
     };
