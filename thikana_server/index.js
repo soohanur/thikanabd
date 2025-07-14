@@ -132,6 +132,10 @@ app.post('/api/properties', authenticateToken, upload.fields([
     postData.userId = req.user.userId;
     postData.type = postData.type || 'rent';
 
+    // Check if the user is an agent and set verified to true
+    const user = await usersCollection.findOne({ _id: new ObjectId(req.user.userId) });
+    postData.verified = user?.agent || false;
+
     // Store category and propertyType as single values (not arrays)
     if (Array.isArray(postData.category)) {
       postData.category = postData.category[0];
@@ -154,10 +158,12 @@ app.post('/api/properties', authenticateToken, upload.fields([
     if (req.files['galleryImages']) {
       postData.galleryImages = req.files['galleryImages'].map(f => f.filename);
     }
+
     // Parse map field if it's a string
     if (postData.map && typeof postData.map === 'string') {
       try { postData.map = JSON.parse(postData.map); } catch {}
     }
+
     const result = await propertiesCollection.insertOne(postData);
     res.status(201).json({ message: 'Property posted successfully', property: result });
   } catch (error) {
@@ -304,10 +310,12 @@ app.delete('/api/properties/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// POST /api/user/profile - Update user profile (avatar, cover, contact info)
+// POST /api/user/profile - Update user profile (avatar, cover, contact info, agent fields)
 app.post('/api/user/profile', authenticateToken, upload.fields([
   { name: 'profilePicture', maxCount: 1 },
-  { name: 'coverPicture', maxCount: 1 }
+  { name: 'coverPicture', maxCount: 1 },
+  { name: 'nidFront', maxCount: 1 },
+  { name: 'nidBack', maxCount: 1 }
 ]), async (req, res) => {
   try {
     const userId = req.user.userId;
@@ -316,11 +324,23 @@ app.post('/api/user/profile', authenticateToken, upload.fields([
     if (req.body.email) updateData.email = req.body.email;
     if (req.body.phone) updateData.phone = req.body.phone;
     if (req.body.address) updateData.address = req.body.address;
+    if (req.body.fullAddress) updateData.fullAddress = req.body.fullAddress;
+    if (req.body.thana) updateData.thana = req.body.thana;
+    if (req.body.zip) updateData.zip = req.body.zip;
+    if (req.body.bkash) updateData.bkash = req.body.bkash;
+    if (req.body.agent) updateData.agent = req.body.agent; // store as string, not boolean
+    if (req.body.agentCharge) updateData.agentCharge = req.body.agentCharge;
     if (req.files['profilePicture']) {
       updateData.profilePicture = `/uploads/${req.files['profilePicture'][0].filename}`;
     }
     if (req.files['coverPicture']) {
       updateData.coverPicture = `/uploads/${req.files['coverPicture'][0].filename}`;
+    }
+    if (req.files['nidFront']) {
+      updateData.nidFront = `/uploads/${req.files['nidFront'][0].filename}`;
+    }
+    if (req.files['nidBack']) {
+      updateData.nidBack = `/uploads/${req.files['nidBack'][0].filename}`;
     }
     await usersCollection.updateOne(
       { _id: new ObjectId(userId) },
@@ -468,5 +488,53 @@ app.get('/api/properties/all', async (req, res) => {
     res.json(properties);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching all properties', error });
+  }
+});
+
+// --- Wishlist API ---
+// Add to wishlist
+app.post('/api/wishlist/:propertyId', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const propertyId = req.params.propertyId;
+    // Add propertyId to user's wishlist array if not already present
+    await usersCollection.updateOne(
+      { _id: new ObjectId(userId) },
+      { $addToSet: { wishlist: propertyId } }
+    );
+    res.json({ message: 'Added to wishlist' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error adding to wishlist', error });
+  }
+});
+
+// Remove from wishlist
+app.delete('/api/wishlist/:propertyId', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const propertyId = req.params.propertyId;
+    await usersCollection.updateOne(
+      { _id: new ObjectId(userId) },
+      { $pull: { wishlist: propertyId } }
+    );
+    res.json({ message: 'Removed from wishlist' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error removing from wishlist', error });
+  }
+});
+
+// Get wishlist (full property objects)
+app.get('/api/wishlist', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
+    const wishlist = user?.wishlist || [];
+    // Fetch property objects for all wishlist IDs
+    const propertyObjs = wishlist.length > 0
+      ? await propertiesCollection.find({ _id: { $in: wishlist.map(id => new ObjectId(id)) } }).toArray()
+      : [];
+    res.json(propertyObjs);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching wishlist', error });
   }
 });

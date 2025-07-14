@@ -132,7 +132,7 @@ export default function Index(){
                                         wrapper="span"
                                         speed={20}
                                         repeat={Infinity}
-                                        className="typewrite text-primary ms-2"
+                                        className="typewrite text-green-500 ms-2"
                                         cursor={false}
                                     /> home</h4>
                                     <p className="para-desc text-white title-dark mb-0">One-Stop Digital Solution for Renting, Buying, and Selling properties in Bangladesh.</p>

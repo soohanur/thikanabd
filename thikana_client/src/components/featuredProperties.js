@@ -1,17 +1,50 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { FiHome, FiHeart, FiCamera } from '../assect/icons/vander';
+import { FiHome, FiHeart } from '../assect/icons/vander';
+import { FaCheck } from 'react-icons/fa';
 import axios from "axios";
 
 export default function FeaturedProperties() {
     const [properties, setProperties] = useState([]);
+    const [wishlist, setWishlist] = useState([]);
 
     useEffect(() => {
         // Fetch all properties from backend
         axios.get("http://localhost:5000/api/properties/all")
             .then(res => setProperties(res.data))
             .catch(() => setProperties([]));
+        // Fetch wishlist
+        const fetchWishlist = async () => {
+            try {
+                const token = localStorage.getItem('thikana_token');
+                const res = await axios.get('http://localhost:5000/api/wishlist', {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                setWishlist(res.data || []);
+            } catch {
+                setWishlist([]);
+            }
+        };
+        fetchWishlist();
     }, []);
+
+    const toggleWishlist = async (propertyId) => {
+        const token = localStorage.getItem('thikana_token');
+        const isWishlisted = wishlist.some(p => p._id === propertyId || p.id === propertyId);
+        try {
+            if (!isWishlisted) {
+                await axios.post(`http://localhost:5000/api/wishlist/${propertyId}`, {}, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                setWishlist(prev => [...prev, { _id: propertyId }]);
+            } else {
+                await axios.delete(`http://localhost:5000/api/wishlist/${propertyId}`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                setWishlist(prev => prev.filter(p => (p._id || p.id) !== propertyId));
+            }
+        } catch {}
+    };
 
     // Sort properties: latest verified first, then latest unverified
     const sortedPropertyData = properties.slice().sort((a, b) => {
@@ -53,11 +86,17 @@ export default function FeaturedProperties() {
                                       style={{ width: '100%', height: '220px', objectFit: 'cover', objectPosition: 'center center', borderRadius: '12px' }}
                                     />
                                     <ul className="list-unstyled property-icon">
-                                        
                                         <li className="mt-1">
-                                            <Link to="#" className="btn btn-sm btn-icon btn-pills btn-primary">
-                                                <FiHeart className="icons" />
-                                            </Link>
+                                            <button
+                                                type="button"
+                                                className={`btn btn-sm btn-icon btn-pills ${wishlist.some(p => (p._id || p.id) === (item._id || item.id)) ? '' : 'btn-primary'}`}
+                                                style={wishlist.some(p => (p._id || p.id) === (item._id || item.id)) ? { backgroundColor: '#166534', color: '#fff' } : {}}
+                                                onClick={() => toggleWishlist(item._id || item.id)}
+                                            >
+                                                {wishlist.some(p => (p._id || p.id) === (item._id || item.id))
+                                                    ? <FaCheck className="icons" />
+                                                    : <FiHeart className="icons" />}
+                                            </button>
                                         </li>
                                     </ul>
                                 </div>

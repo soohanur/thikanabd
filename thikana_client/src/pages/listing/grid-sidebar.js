@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import axios from "axios";
+import { FiHeart } from 'react-icons/fi';
+import { FaCheck } from 'react-icons/fa';
 
 import bg3 from "../../assect/images/property/3.jpg";
 
@@ -25,6 +27,8 @@ export default function GridSidebar() {
     // State for all properties from backend
     const [properties, setProperties] = useState([]);
     const [filteredProperties, setFilteredProperties] = useState([]);
+    const [wishlist, setWishlist] = useState([]);
+    const user = JSON.parse(localStorage.getItem('thikana_user') || '{}');
 
     const location = useLocation();
     const initializedFromState = useRef(false);
@@ -40,6 +44,22 @@ export default function GridSidebar() {
                 setProperties([]);
                 setFilteredProperties([]);
             });
+    }, []);
+
+    // Fetch wishlist on mount
+    useEffect(() => {
+        const fetchWishlist = async () => {
+            try {
+                const token = localStorage.getItem('thikana_token');
+                const res = await axios.get('http://localhost:5000/api/wishlist', {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                setWishlist(res.data || []);
+            } catch {
+                setWishlist([]);
+            }
+        };
+        fetchWishlist();
     }, []);
 
     // Set filters from location.state on first load only
@@ -187,6 +207,25 @@ export default function GridSidebar() {
         }
         // eslint-disable-next-line
     }, [filters.location]);
+
+    // Add/remove property from wishlist
+    const toggleWishlist = async (propertyId) => {
+        const token = localStorage.getItem('thikana_token');
+        const isWishlisted = wishlist.some(p => p._id === propertyId || p.id === propertyId);
+        try {
+            if (!isWishlisted) {
+                await axios.post(`http://localhost:5000/api/wishlist/${propertyId}`, {}, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                setWishlist(prev => [...prev, { _id: propertyId }]);
+            } else {
+                await axios.delete(`http://localhost:5000/api/wishlist/${propertyId}`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                setWishlist(prev => prev.filter(p => (p._id || p.id) !== propertyId));
+            }
+        } catch {}
+    };
 
     return (
         <>
@@ -392,18 +431,36 @@ export default function GridSidebar() {
                                 {filteredProperties.map((item, index) => (
                                     <div className="col-lg-6 col-12" key={item._id || item.id || index}>
                                         <div className="card property border-0 shadow position-relative overflow-hidden rounded-3">
+                                            
+                                            
+                                            
                                             <div className="property-image position-relative overflow-hidden shadow">
+                                                {/* Verified Tag */}
                                                 {item.verified && (
                                                     <span className="badge bg-success position-absolute top-0 start-0 m-2">
                                                         Verified
                                                     </span>
                                                 )}
                                                 <img 
-                                                    src={item.coverImage ? (item.coverImage.startsWith('http') ? item.coverImage : `http://localhost:5000/uploads/${item.coverImage}`) : item.image || ''} 
-                                                    className="img-fluid" 
-                                                    alt={item.title || ''} 
-                                                    style={{ width: '100%', height: '220px', objectFit: 'cover', objectPosition: 'center center', borderRadius: '12px' }}
+                                                  src={item.coverImage ? (item.coverImage.startsWith('http') ? item.coverImage : `http://localhost:5000/uploads/${item.coverImage}`) : item.image || ''} 
+                                                  className="img-fluid" 
+                                                  alt="" 
+                                                  style={{ width: '100%', height: '220px', objectFit: 'cover', objectPosition: 'center center', borderRadius: '12px' }}
                                                 />
+                                                <ul className="list-unstyled property-icon">
+                                                    <li className="mt-1">
+                                                        <button
+                                                            type="button"
+                                                            className={`btn btn-sm btn-icon btn-pills ${wishlist.some(p => (p._id || p.id) === (item._id || item.id)) ? '' : 'btn-primary'}`}
+                                                            style={wishlist.some(p => (p._id || p.id) === (item._id || item.id)) ? { backgroundColor: '#166534', color: '#fff' } : {}}
+                                                            onClick={() => toggleWishlist(item._id || item.id)}
+                                                        >
+                                                            {wishlist.some(p => (p._id || p.id) === (item._id || item.id))
+                                                                ? <FaCheck className="icons" />
+                                                                : <FiHeart className="icons" />}
+                                                        </button>
+                                                    </li>
+                                                </ul>
                                             </div>
                                             <div className="card-body content p-4">
                                                 <Link

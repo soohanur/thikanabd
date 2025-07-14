@@ -223,13 +223,21 @@ export default function PropertyDetails() {
                             <div className="rounded-3 shadow bg-white sticky-bar p-4">
                                 {/* Posted User Info Box */}
                                 {postedUser && (
-                                    <div className="rounded-3xl overflow-hidden w-full bg-white flex flex-col items-center pt-1 pb-4">
+                                    <div className="rounded-3xl overflow-hidden w-full bg-white flex flex-col items-center pt-1 pb-4 relative">
                                         <img
                                             src={postedUser.coverPicture ? (postedUser.coverPicture.startsWith('http') ? postedUser.coverPicture : `http://localhost:5000${postedUser.coverPicture}`) : coverImg}
                                             alt="Cover"
                                             className="w-full h-40 object-cover rounded-3xl mb-0"
                                             style={{ maxWidth: '100%', borderBottomLeftRadius: '0', borderBottomRightRadius: '0' }}
                                         />
+                                        {/* Agent Charge badge (top right) */}
+                                        {postedUser.agent === "agent" && postedUser.agentCharge && (
+                                            <div style={{position: 'absolute', top: 16, right: 16, zIndex: 20}}>
+                                                <span className="bg-green-600 text-white px-4 py-2 rounded-full shadow font-semibold text-sm">
+                                                    Agent Charge: ৳{postedUser.agentCharge}
+                                                </span>
+                                            </div>
+                                        )}
                                         <div className="w-24 h-24 rounded-full border-4 border-white bg-white flex items-center justify-center overflow-hidden shadow-lg mx-auto" style={{ marginTop: '-48px', zIndex: 10 }}>
                                             <img
                                                 src={postedUser.profilePicture ? (postedUser.profilePicture.startsWith('http') || postedUser.profilePicture.startsWith('/uploads/') ? (postedUser.profilePicture.startsWith('http') ? postedUser.profilePicture : `http://localhost:5000${postedUser.profilePicture}`) : `http://localhost:5000/uploads/${postedUser.profilePicture}`) : defaultProfile}
@@ -237,11 +245,22 @@ export default function PropertyDetails() {
                                                 className="w-full h-full object-cover"
                                             />
                                         </div>
+                                        {/* Book Agent button for agent posts, visible to everyone, under profile pic */}
+                                        
                                         <div className="w-full text-center mt-2 flex flex-col items-center gap-2">
                                             <Link to={`/public-profile/${postedUser.username || postedUser._id}`} className="block text-lg font-bold text-gray-800 hover:text-green-700 transition">
                                                 {postedUser.name || postedUser.username || 'User'}
                                             </Link>
                                         </div>
+                                        {postedUser.agent === "agent" && (
+                                            <Link
+                                                to={localStorage.getItem('thikana_token') ? "/book-agent/" + postedUser._id : "/auth-login?redirect=/book-agent/" + postedUser._id}
+                                                className="btn bg-green-600 text-white w-100 mt-3 rounded-full font-semibold shadow"
+                                                style={{whiteSpace:'nowrap'}}
+                                            >
+                                                Book Agent
+                                            </Link>
+                                        )}
                                     </div>
                                 )}
                                 <div className="d-flex align-items-center mt-5 justify-content-between">

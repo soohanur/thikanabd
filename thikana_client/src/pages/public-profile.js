@@ -50,7 +50,15 @@ export default function PublicProfile() {
               alt="Cover"
               className="w-full h-56 object-cover rounded-3xl"
             />
-            {/* Avatar and name on left, Message button on right */}
+            {/* Agent Charge badge (top right) */}
+            {user.agent === "agent" && user.agentCharge && (
+              <div style={{position: 'absolute', top: 20, right: 20, zIndex: 20}}>
+                <span className="bg-green-600 text-white px-4 py-2 rounded-full shadow font-semibold text-sm">
+                  Agent Charge: ৳{user.agentCharge}
+                </span>
+              </div>
+            )}
+            {/* Avatar and name on left, Message button and Book Now (if agent) on right */}
             <div className="absolute left-8 bottom-[-58px] flex items-center gap-4">
               <div className="w-24 h-24 rounded-full border-4 border-white bg-white flex items-center justify-center overflow-hidden shadow-lg">
                 <img
@@ -70,6 +78,14 @@ export default function PublicProfile() {
               >
                 Message
               </button>
+              {user.agent === "agent" && (
+                <button
+                  className="bg-green-600 text-white px-6 py-2 rounded-full font-semibold shadow hover:bg-green-700 transition"
+                  onClick={() => { /* Book Now action here */ }}
+                >
+                  Book Now
+                </button>
+              )}
             </div>
           </div>
         </div>
