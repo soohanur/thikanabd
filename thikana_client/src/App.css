@@ -51,3 +51,22 @@ a.btn.bg-green-600.text-white.w-100.mt-3.rounded-full.font-semibold.shadow {
 a.btn.bg-green-600.text-white.w-100.mt-3.rounded-full.font-semibold.shadow:hover {
   background: #095c16;
 }
+button.lg\:hidden.fixed.left-4.top-\[88px\].z-50.p-2.rounded-md.bg-white.shadow-md.border.border-gray-200 {
+  background: #00000000 !important;
+  backdrop-filter: blur(2px);
+  right: 15px;
+  left: 290px;
+}
+a#back-to-top {
+  display: flex;
+  flex-wrap: nowrap;
+  align-content: center !important;
+  justify-content: center;
+  align-items: center !important;
+}
+
+
+svg.fea.icon-sm.align-middle {
+  height: 20px;
+  width: 36px;
+}

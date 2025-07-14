@@ -219,55 +219,58 @@ function MessagesPage({ user: propUser }) {
   return (
     <>
     <Navbar navClass="defaultscroll sticky top-0 z-50" menuClass="navigation-menu nav-left" />
-    <div className="flex bg-gray-50 h-[600px] mt-[110px]  container rounded-3xl shadow overflow-hidden">
-        
+    <div className="flex mb-5 flex-col md:flex-row bg-gray-50 min-h-[600px] mt-[110px] ml-[15px] mr-[15px] container p-0 rounded-3xl shadow overflow-hidden">
       {/* Sidebar: Conversations */}
-      <div className="w-1/3   border-r bg-gray-50 p-4 overflow-y-auto">
-        <h3 className="font-bold text-lg mb-4">Messages</h3>
-        <ul className=" ml-[-30px] "> 
+      <div className="w-full md:w-1/3 border-b md:border-b-0 md:border-r bg-gray-50 p-2 sm:p-4 overflow-x-auto md:overflow-y-auto flex-shrink-0">
+        <h3 className="font-bold text-lg mt-4 mb-4 px-2 md:px-0">Messages</h3>
+        <ul className="ml-0 md:ml-[-30px] flex md:block gap-2 md:gap-0 overflow-x-auto pb-2 md:pb-0">
           {conversations.map(conv => {
             const otherId = conv.participants.find(id => id !== user?.userId && id !== user?._id);
             const info = userInfos[otherId] || {};
             const isUnread = conv.lastMessage && conv.lastMessage.senderId === otherId && !conv.lastMessage.read;
             return (
               <li key={conv.conversationId}
-                  className={`flex items-center gap-3 p-2 rounded-xl cursor-pointer mb-2 ${selectedConv === conv.conversationId ? 'bg-green-100' : ''}`}
+                  className={`flex items-center gap-3 p-2 rounded-xl cursor-pointer mb-0 md:mb-2 min-w-[220px] md:min-w-0 ${selectedConv === conv.conversationId ? 'bg-green-100' : ''}`}
                   style={{ background: isUnread ? 'rgb(255 230 230)' : undefined }}
                   onClick={() => setSelectedConv(conv.conversationId)}>
                 <img src={info.profilePicture ? (info.profilePicture.startsWith('http') ? info.profilePicture : apiUrl(info.profilePicture)) : defaultProfile} alt="avatar" className="w-10 h-10 rounded-full object-cover" />
-                <div>
-                  <div className="font-semibold">{info.name || otherId?.slice(-6) || "User"}</div>
-                  <div className="text-xs text-gray-500">{conv.lastMessage?.text?.slice(0, 30) || "No messages yet"}</div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold truncate">{info.name || otherId?.slice(-6) || "User"}</div>
+                  <div className="text-xs text-gray-500 truncate">{conv.lastMessage?.text?.slice(0, 30) || "No messages yet"}</div>
                 </div>
-                <div className="ml-auto text-xs text-gray-400">{conv.lastMessage?.timestamp ? new Date(conv.lastMessage.timestamp).toLocaleTimeString() : ""}</div>
+                <div className="ml-auto text-xs text-gray-400 hidden md:block">{conv.lastMessage?.timestamp ? new Date(conv.lastMessage.timestamp).toLocaleTimeString() : ""}</div>
               </li>
             );
           })}
         </ul>
       </div>
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col">
-        <div className="bg-green-700 text-white px-6 py-3 font-bold">{selectedConv ? `Conversation` : "Select a conversation"}</div>
-        <div className="flex-1 p-6 overflow-y-auto bg-gray-100">
-          {/* Remove loading message for real-time updates */}
-          <div className="flex flex-col gap-2">
-            {messages.map((msg, idx) => (
-              <div key={idx} className={`flex ${msg.senderId === user?.userId || msg.senderId === user?._id ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[60%] px-4 py-2 rounded-2xl shadow ${msg.senderId === user?.userId || msg.senderId === user?._id ? 'bg-green-700 text-white' : 'bg-white text-gray-800'}`}>{msg.text}</div>
-              </div>
-            ))}
-            <div ref={messagesEndRef} />
-          </div>
+      <div className="flex-1 flex flex-col min-h-[350px] shadow-md overflow-hidden">
+        {/* Chat header */}
+        <div className="bg-green-700 text-white px-4 sm:px-6 py-3 font-bold text-center md:text-left text-base sm:text-lg sticky top-0 z-10 shadow min-h-[48px] flex items-center">
+          {selectedConv ? `Conversation` : "Select a conversation"}
         </div>
-        <form className="flex items-center px-6 py-4 border-t bg-white" onSubmit={handleSend}>
+        {/* Messages area - scrollable */}
+        <div className="flex-1 flex flex-col gap-2 px-2 py-3 sm:px-4 sm:py-6 overflow-y-auto scrollbar-thin scrollbar-thumb-green-200 scrollbar-track-gray-100"
+             style={{ maxHeight: 'calc(100dvh - 220px)' }}>
+          {messages.map((msg, idx) => (
+            <div key={idx} className={`flex ${msg.senderId === user?.userId || msg.senderId === user?._id ? 'justify-end' : 'justify-start'}`}>
+              <div className={`max-w-[85vw] sm:max-w-[60%] px-4 py-2 rounded-2xl shadow text-sm sm:text-base break-words ${msg.senderId === user?.userId || msg.senderId === user?._id ? 'bg-green-700 text-white' : 'bg-white text-gray-800'}`}>{msg.text}</div>
+            </div>
+          ))}
+          <div ref={messagesEndRef} />
+        </div>
+        {/* Input area */}
+        <form className="flex items-center gap-2 px-2 sm:px-6 py-3 border-t bg-white sticky bottom-0 z-10" onSubmit={handleSend}>
           <input
             type="text"
-            className="flex-1 border rounded-full px-4 py-2 mr-2"
+            className="flex-1 border rounded-full px-4 py-2 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-green-400 bg-gray-50"
             placeholder="Chat message"
             value={messageText}
             onChange={e => setMessageText(e.target.value)}
+            autoComplete="off"
           />
-          <button type="submit" className="bg-green-700 text-white px-4 py-2 rounded-full font-bold">Send</button>
+          <button type="submit" className="bg-green-700 text-white px-4 py-2 rounded-full font-bold text-sm sm:text-base">Send</button>
         </form>
       </div>
     </div>

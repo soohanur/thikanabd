@@ -171,6 +171,7 @@ export default function Profiles() {
   const [editProperty, setEditProperty] = useState(null);
   const [editFormVisible, setEditFormVisible] = useState(false);
   const [wishlist, setWishlist] = useState([]);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Get user data from localStorage (set after login)
   const [user, setUser] = useState(() => {
@@ -255,12 +256,151 @@ export default function Profiles() {
   }, []);
 
   return (
-    <div className="bg-gradient-to-br from-[#f3f4f6] to-[#e0e7ff]">
-      {/* Layout: Navbar is above, so add top margin to sidebars and content */}
+    <div className="bg-gradient-to-br from-[#f3f4f6] to-[#e0e7ff] min-h-screen">
+      {/* Navbar */}
       <Navbar navClass="defaultscroll sticky top-0 z-50" menuClass="navigation-menu nav-left" />
-      <div className="flex w-full" style={{ minHeight: 'calc(100vh - 72px)', paddingTop: '72px' }}>
-        {/* Left Sidebar */}
-        <aside className="sticky top-[72px] h-[calc(100vh-72px)] w-1/5 bg-white shadow-lg flex flex-col py-8 px-4 z-10" >
+      {/* Hamburger icon at the very left of the page, after navbar, for mobile */}
+      {!sidebarOpen && (
+        <button
+          className="lg:hidden fixed left-4 top-[88px] z-50 p-2 rounded-md bg-white shadow-md border border-gray-200"
+          onClick={() => setSidebarOpen(true)}
+          aria-label="Open sidebar"
+        >
+          <i className="fas fa-bars text-xl text-green-700"></i>
+        </button>
+      )}
+      {/* Sidebar overlay for mobile */}
+      {sidebarOpen && (
+        <div className="fixed inset-0 z-40 bg-black bg-opacity-40 flex lg:hidden" onClick={() => setSidebarOpen(false)}>
+          <aside
+            className={`fixed left-0 top-[72px] h-[calc(100vh-72px)] w-4/5 max-w-xs bg-white shadow-lg flex flex-col py-8 px-4 z-50 transform transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
+            onClick={e => e.stopPropagation()}
+          >
+            <button
+              className="absolute top-2 right-2 p-2 rounded-full hover:bg-gray-100"
+              onClick={() => setSidebarOpen(false)}
+              aria-label="Close sidebar"
+            >
+              <i className="fas fa-times text-lg"></i>
+            </button>
+            {/* Sidebar content (same as below) */}
+            <ul className="space-y-6 mt-8">
+              <li className="group">
+                <button
+                  className={`flex items-center gap-3 font-semibold w-full text-left ${activeTab === "dashboard" ? "text-green-700" : "text-black"} group-hover:text-green-700`}
+                  onClick={() => { setActiveTab("dashboard"); setSidebarOpen(false); }}
+                >
+                  <i className={`fas fa-gauge text-lg ${activeTab === "dashboard" ? "text-green-700" : ""} group-hover:text-green-700`}></i>
+                  <span className="group-hover:text-green-700">Dashboard</span>
+                </button>
+              </li>
+              <li className="group">
+                <button
+                  className={`flex items-center gap-3 font-semibold w-full text-left ${activeTab === "propertyList" ? "text-green-700" : "text-black"} group-hover:text-green-700`}
+                  onClick={() => { setActiveTab("propertyList"); setSidebarOpen(false); }}
+                >
+                  <i className={`fas fa-layer-group text-lg ${activeTab === "propertyList" ? "text-green-700" : ""} group-hover:text-green-700`}></i>
+                  <span className="group-hover:text-green-700">Property List</span>
+                  <span className="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">{properties.length}</span>
+                </button>
+              </li>
+              {/* Current Booking only for agents, with badge */}
+              {user?.agent === "agent" && (
+                <li className="group">
+                  <button
+                    className={`flex items-center gap-3 font-semibold w-full text-left ${activeTab === "bookingList" ? "text-green-700" : "text-black"} group-hover:text-green-700`}
+                    onClick={() => { setActiveTab("bookingList"); setSidebarOpen(false); }}
+                  >
+                    <i className={`fas fa-list-alt text-lg ${activeTab === "bookingList" ? "text-green-700" : ""} group-hover:text-green-700`}></i>
+                    <span className="group-hover:text-green-700">Current Booking</span>
+                    <span className="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">{user.currentBookingCount || 0}</span>
+                  </button>
+                </li>
+              )}
+              {/* Booked Agents only for normal users (not agents), with badge */}
+              {user?.agent !== "agent" && (
+                <li className="group">
+                  <button
+                    className={`flex items-center gap-3 font-semibold w-full text-left ${activeTab === "bookedAgents" ? "text-green-700" : "text-black"} group-hover:text-green-700`}
+                    onClick={() => { setActiveTab("bookedAgents"); setSidebarOpen(false); }}
+                  >
+                    <i className={`fas fa-user-tie text-lg ${activeTab === "bookedAgents" ? "text-green-700" : ""} group-hover:text-green-700`}></i>
+                    <span className="group-hover:text-green-700">Booked Agents</span>
+                    <span className="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">{user.bookedAgentsCount || 0}</span>
+                  </button>
+                </li>
+              )}
+              <li className="group">
+                <button
+                  className={`flex items-center gap-3 font-semibold w-full text-left ${activeTab === "bookedProperty" ? "text-green-700" : "text-black"} group-hover:text-green-700`}
+                  onClick={() => { setActiveTab("bookedProperty"); setSidebarOpen(false); }}
+                >
+                  <i className={`fas fa-book text-lg ${activeTab === "bookedProperty" ? "text-green-700" : ""} group-hover:text-green-700`}></i>
+                  <span className="group-hover:text-green-700">Booked Property</span>
+                  <span className="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">{user.bookedPropertyCount || 0}</span>
+                </button>
+              </li>
+              <li className="group">
+                <button
+                  className={`flex items-center gap-3 font-semibold w-full text-left ${activeTab === "postProperty" ? "text-green-700" : "text-black"} group-hover:text-green-700`}
+                  onClick={() => { setActiveTab("postProperty"); setSidebarOpen(false); }}
+                >
+                  <i className={`fas fa-file-alt text-lg ${activeTab === "postProperty" ? "text-green-700" : ""} group-hover:text-green-700`}></i>
+                  <span className="group-hover:text-green-700">Post Property</span>
+                </button>
+              </li>
+              <li className="group">
+                <button
+                  className={`flex items-center gap-3 font-semibold w-full text-left ${activeTab === "wallet" ? "text-green-700" : "text-black"} group-hover:text-green-700`}
+                  onClick={() => { setActiveTab("wallet"); setSidebarOpen(false); }}
+                >
+                  <i className={`fas fa-wallet text-lg ${activeTab === "wallet" ? "text-green-700" : ""} group-hover:text-green-700`}></i>
+                  <span className="group-hover:text-green-700">My Wallet</span>
+                </button>
+              </li>
+              <li className="group">
+                <button
+                  className={`flex items-center gap-3 font-semibold w-full text-left ${activeTab === "saved" ? "text-green-700" : "text-black"} group-hover:text-green-700`}
+                  onClick={() => { setActiveTab("saved"); setSidebarOpen(false); }}
+                >
+                  <i className={`fas fa-heart text-lg ${activeTab === "saved" ? "text-green-700" : ""} group-hover:text-green-700`}></i>
+                  <span className="group-hover:text-green-700">Wishlist</span>
+                  <span className="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">{wishlist.length}</span>
+                </button>
+              </li>
+              <li className="group">
+                <button
+                  className={`flex items-center gap-3 font-semibold w-full text-left ${activeTab === "profile" ? "text-green-700" : "text-black"} group-hover:text-green-700`}
+                  onClick={() => { setActiveTab("profile"); setSidebarOpen(false); }}
+                >
+                  <i className={`fas fa-user text-lg ${activeTab === "profile" ? "text-green-700" : ""} group-hover:text-green-700`}></i>
+                  <span className="group-hover:text-green-700">My Profile</span>
+                </button>
+              </li>
+              <li className="group">
+                <button
+                  className={`flex items-center gap-3 font-semibold w-full text-left ${activeTab === "becomeAgent" ? "text-green-700" : "text-black"} group-hover:text-green-700`}
+                  onClick={() => { setActiveTab("becomeAgent"); setSidebarOpen(false); }}
+                >
+                  <i className={`fas fa-user-tie text-lg ${activeTab === "becomeAgent" ? "text-green-700" : ""} group-hover:text-green-700`}></i>
+                  <span className="group-hover:text-green-700">Become a Agent</span>
+                </button>
+              </li>
+            </ul>
+
+            <button className="w-full btn btn-success mt-8" onClick={() => {
+              localStorage.removeItem('thikana_token');
+              localStorage.removeItem('thikana_user');
+              window.location.href = '/';
+            }}>
+              <i className="fas fa-sign-out-alt me-2"></i>Logout
+            </button>
+          </aside>
+        </div>
+      )}
+      <div className="flex flex-col lg:flex-row w-full" style={{ minHeight: 'calc(100vh - 72px)', paddingTop: '72px' }}>
+        {/* Left Sidebar (desktop) */}
+        <aside className="hidden lg:flex sticky top-[72px] h-[calc(100vh-72px)] w-1/5 bg-white shadow-lg flex-col py-8 px-4 z-10">
           <ul className="space-y-6">
             <li className="group">
               <button
@@ -363,7 +503,6 @@ export default function Profiles() {
                 <span className="group-hover:text-green-700">Become a Agent</span>
               </button>
             </li>
-            
           </ul>
 
           <button className="w-full btn btn-success mt-8" onClick={() => {
@@ -373,10 +512,9 @@ export default function Profiles() {
           }}>
             <i className="fas fa-sign-out-alt me-2"></i>Logout
           </button>
-
         </aside>
         {/* Right Content Area */}
-        <main className="w-4/5 pl-[5pc] pr-5 pt-12" style={{ paddingTop: '50px', paddingBottom: '100px' }}>
+        <main className="flex-1 w-full pt-8 pb-24 transition-all duration-300 px-[15px] lg:pl-[50px] lg:pr-[50px] lg:pt-12">
           {activeTab === "dashboard" ? (
             <>
               <DashboardTab user={user} properties={properties} />
@@ -452,7 +590,6 @@ export default function Profiles() {
           )}
         </main>
       </div>
-
       <Footer />
     </div>
   );

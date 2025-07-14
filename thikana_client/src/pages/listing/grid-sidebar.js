@@ -244,10 +244,10 @@ export default function GridSidebar() {
             </div>
             <section className="section">
                 <div className="container">
-                    <div className="row g-4">
+                    <div className="row g-4 flex flex-col lg:flex-row">
                         {/* Sidebar */}
-                        <div className="col-lg-4 col-md-6 col-12">
-                            <div className="card bg-white p-4 rounded-4 shadow sticky-bar" style={{border:'1px solid #e5e7eb', boxShadow:'0 2px 16px 0 #e5e7eb'}}>
+                        <div className="col-lg-4 col-md-6 col-12 w-full lg:w-1/3 mb-4 lg:mb-0">
+                            <div className="card bg-white p-4 rounded-4 shadow sticky-bar border border-gray-200" style={{boxShadow:'0 2px 16px 0 #e5e7eb'}}>
                                 <h5 className="mb-4 font-bold text-lg text-green-700 flex items-center gap-2"><i className="mdi mdi-filter-variant"></i> Filter Properties</h5>
                                 {/* Verified */}
                                 <div className="mb-4 flex items-center gap-2">
@@ -427,15 +427,12 @@ export default function GridSidebar() {
                         </div>
 
                         {/* Property Listings */}
-                        <div className="col-lg-8 col-md-6 col-12">
-                            <div className="row g-4">
+                        <div className="col-lg-8 col-md-6 col-12 w-full lg:w-2/3">
+                            <div className="row g-4 flex flex-col sm:flex-row">
                                 {filteredProperties.map((item, index) => (
-                                    <div className="col-lg-6 col-12" key={item._id || item.id || index}>
-                                        <div className="card property border-0 shadow position-relative overflow-hidden rounded-3">
-                                            
-                                            
-                                            
-                                            <div className="property-image position-relative overflow-hidden shadow">
+                                    <div className="col-lg-6 col-12 w-full sm:w-1/2 mb-4" key={item._id || item.id || index}>
+                                        <div className="card property border-0 shadow position-relative overflow-hidden rounded-3 h-full flex flex-col">
+                                            <div className="property-image position-relative overflow-hidden shadow rounded-t-3xl">
                                                 {/* Verified Tag */}
                                                 {item.verified && (
                                                     <span className="badge bg-success position-absolute top-0 start-0 m-2">
@@ -463,7 +460,7 @@ export default function GridSidebar() {
                                                     </li>
                                                 </ul>
                                             </div>
-                                            <div className="card-body content p-4">
+                                            <div className="card-body content p-4 flex-1 flex flex-col justify-between">
                                                 <Link
                                                     to={`/property-detail/${item._id || item.id}`}
                                                     className="title fs-5 text-dark fw-medium"

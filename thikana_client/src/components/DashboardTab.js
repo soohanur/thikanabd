@@ -27,20 +27,6 @@ export default function DashboardTab({ user, properties }) {
               <h3 className="text-xl mt-5 font-bold text-gray-800">{user?.name || "User Name"}</h3>
             </div>
           </div>
-          <div className="absolute right-8 top-8 flex gap-4">
-            <button
-              className="bg-green-600 text-white px-6 py-2 rounded-full font-semibold shadow hover:bg-green-700 transition"
-              // You can add onClick handlers as needed
-            >
-              Edit Profile
-            </button>
-            <button
-              className="bg-green-600 text-white px-6 py-2 rounded-full font-semibold shadow hover:bg-green-700 transition"
-              // You can add onClick handlers as needed
-            >
-              Post Property
-            </button>
-          </div>
         </div>
       </div>
       {/* Property Items */}
