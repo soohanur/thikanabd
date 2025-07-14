@@ -19,24 +19,37 @@ function MessagesPage({ user: propUser }) {
   }));
   const [userInfos, setUserInfos] = useState({}); // userId -> {name, profilePicture}
 
+  // Helper for axios 403 error handling
+  function handleAxiosError(err) {
+    if (err.response && err.response.status === 403) {
+      alert("Session expired or unauthorized. Please log in again.");
+      localStorage.removeItem("thikana_token");
+      window.location.href = "/login";
+      return true;
+    }
+    return false;
+  }
+
   // Fetch conversations and auto-select the one with userId if present
   useEffect(() => {
     const token = localStorage.getItem("thikana_token");
     if (!token) return;
     axios.get("http://localhost:5000/api/messages/conversations", {
       headers: { Authorization: `Bearer ${token}` },
-    }).then(res => {
-      setConversations(res.data);
-      if (userId) {
-        // Find or create conversation with userId
-        let conv = res.data.find(c => c.participants.includes(userId));
-        if (conv) {
-          setSelectedConv(conv.conversationId);
-        } else {
-          setSelectedConv(null);
-        }
-      } // Removed auto-selecting first conversation
-    });
+    })
+      .then(res => {
+        setConversations(res.data);
+        if (userId) {
+          // Find or create conversation with userId
+          let conv = res.data.find(c => c.participants.includes(userId));
+          if (conv) {
+            setSelectedConv(conv.conversationId);
+          } else {
+            setSelectedConv(null);
+          }
+        } // Removed auto-selecting first conversation
+      })
+      .catch(handleAxiosError);
   }, [userId]);
 
   useEffect(() => {
@@ -45,11 +58,13 @@ function MessagesPage({ user: propUser }) {
     setLoading(true);
     axios.get(`http://localhost:5000/api/messages/${selectedConv}`, {
       headers: { Authorization: `Bearer ${token}` },
-    }).then(res => {
-      setMessages(res.data);
-      setLoading(false);
-      // setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100); // auto-scroll disabled
-    });
+    })
+      .then(res => {
+        setMessages(res.data);
+        setLoading(false);
+        // setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100); // auto-scroll disabled
+      })
+      .catch(handleAxiosError);
   }, [selectedConv]);
 
   // Fetch user info for all conversation participants (except self)
@@ -86,24 +101,26 @@ function MessagesPage({ user: propUser }) {
     const fetchConversations = () => {
       axios.get("http://localhost:5000/api/messages/conversations", {
         headers: { Authorization: `Bearer ${token}` },
-      }).then(res => {
-        // Sort by lastMessage timestamp desc
-        const sorted = [...res.data].sort((a, b) => {
-          const tA = a.lastMessage?.timestamp ? new Date(a.lastMessage.timestamp).getTime() : 0;
-          const tB = b.lastMessage?.timestamp ? new Date(b.lastMessage.timestamp).getTime() : 0;
-          return tB - tA;
-        });
-        setConversations(sorted);
-        // Only update selectedConv if userId is present in the URL and no conversation is selected yet
-        if (userId && !selectedConv) {
-          let conv = sorted.find(c => c.participants.includes(userId));
-          if (conv) setSelectedConv(conv.conversationId);
-        } else if (selectedConv && !sorted.some(c => c.conversationId === selectedConv)) {
-          // If the selected conversation was deleted, clear selection
-          setSelectedConv(null);
-        }
-        // Otherwise, do not change selectedConv
-      });
+      })
+        .then(res => {
+          // Sort by lastMessage timestamp desc
+          const sorted = [...res.data].sort((a, b) => {
+            const tA = a.lastMessage?.timestamp ? new Date(a.lastMessage.timestamp).getTime() : 0;
+            const tB = b.lastMessage?.timestamp ? new Date(b.lastMessage.timestamp).getTime() : 0;
+            return tB - tA;
+          });
+          setConversations(sorted);
+          // Only update selectedConv if userId is present in the URL and no conversation is selected yet
+          if (userId && !selectedConv) {
+            let conv = sorted.find(c => c.participants.includes(userId));
+            if (conv) setSelectedConv(conv.conversationId);
+          } else if (selectedConv && !sorted.some(c => c.conversationId === selectedConv)) {
+            // If the selected conversation was deleted, clear selection
+            setSelectedConv(null);
+          }
+          // Otherwise, do not change selectedConv
+        })
+        .catch(handleAxiosError);
     };
     fetchConversations();
     const interval = setInterval(fetchConversations, 2000);
@@ -118,11 +135,13 @@ function MessagesPage({ user: propUser }) {
       setLoading(true);
       axios.get(`http://localhost:5000/api/messages/${selectedConv}`, {
         headers: { Authorization: `Bearer ${token}` },
-      }).then(res => {
-        setMessages(res.data);
-        setLoading(false);
-        // setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100); // auto-scroll disabled
-      });
+      })
+        .then(res => {
+          setMessages(res.data);
+          setLoading(false);
+          // setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100); // auto-scroll disabled
+        })
+        .catch(handleAxiosError);
     };
     fetchMessages();
     const interval = setInterval(fetchMessages, 2000);
@@ -141,12 +160,14 @@ function MessagesPage({ user: propUser }) {
       // Mark as read (send a PATCH or POST to backend to update read status)
       axios.post(`http://localhost:5000/api/messages/${selectedConv}/read`, {}, {
         headers: { Authorization: `Bearer ${token}` },
-      }).then(() => {
-        // Optionally, refresh conversations
-        axios.get("http://localhost:5000/api/messages/conversations", {
-          headers: { Authorization: `Bearer ${token}` },
-        }).then(res => setConversations(res.data));
-      });
+      })
+        .then(() => {
+          // Optionally, refresh conversations
+          axios.get("http://localhost:5000/api/messages/conversations", {
+            headers: { Authorization: `Bearer ${token}` },
+          }).then(res => setConversations(res.data));
+        })
+        .catch(handleAxiosError);
     }
   }, [selectedConv]);
 
@@ -168,24 +189,29 @@ function MessagesPage({ user: propUser }) {
       text: messageText,
     }, {
       headers: { Authorization: `Bearer ${token}` },
-    });
+    })
+      .catch(handleAxiosError);
     setMessageText("");
     // Refresh conversations and select the new/updated conversation
     axios.get("http://localhost:5000/api/messages/conversations", {
       headers: { Authorization: `Bearer ${token}` },
-    }).then(res => {
-      setConversations(res.data);
-      let conv = res.data.find(c => c.participants.includes(receiverId));
-      if (conv) setSelectedConv(conv.conversationId);
-    });
+    })
+      .then(res => {
+        setConversations(res.data);
+        let conv = res.data.find(c => c.participants.includes(receiverId));
+        if (conv) setSelectedConv(conv.conversationId);
+      })
+      .catch(handleAxiosError);
     // Refresh messages if conversation is now selected
     if (selectedConv) {
       axios.get(`http://localhost:5000/api/messages/${selectedConv}`, {
         headers: { Authorization: `Bearer ${token}` },
-      }).then(res => {
-        setMessages(res.data);
-        // setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100); // auto-scroll disabled
-      });
+      })
+        .then(res => {
+          setMessages(res.data);
+          // setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100); // auto-scroll disabled
+        })
+        .catch(handleAxiosError);
     }
   };
 
