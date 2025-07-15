@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { apiUrl } from "../utils/api";
 import coverImg from "../assect/images/profile-cover.png";
@@ -13,6 +13,8 @@ export default function PublicProfile() {
   const [user, setUser] = useState(null);
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [avgRating, setAvgRating] = useState(null);
+  const [ratingCount, setRatingCount] = useState(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -28,6 +30,15 @@ export default function PublicProfile() {
           if (parsed.username === username || parsed._id === username) {
             navigate("/profiles", { replace: true });
           }
+        }
+        // Fetch agent rating info if user is agent
+        if (res.data.user && res.data.user._id && res.data.user.agent === "agent") {
+          const avgRes = await fetch(apiUrl(`/api/agent/${res.data.user._id}/rating/average`));
+          const avgData = await avgRes.json();
+          setAvgRating(avgData.averageRating || 0);
+          const countRes = await fetch(apiUrl(`/api/agent/${res.data.user._id}/ratings`));
+          const countData = await countRes.json();
+          setRatingCount(Array.isArray(countData) ? countData.length : 0);
         }
       } catch (err) {
         setLoading(false);
@@ -68,8 +79,16 @@ export default function PublicProfile() {
                   className="w-full h-full object-cover"
                 />
               </div>
-              <div className="ml-2">
+              <div className="ml-2 flex items-center gap-3">
                 <h3 className="text-xl mt-5 font-bold text-gray-800">{user.name || "User Name"}</h3>
+                {/* Agent rating display */}
+                {user.agent === "agent" && avgRating > 0 && ratingCount > 0 && (
+                  <div className="flex items-center mt-5">
+                    <span className="text-yellow-400 text-2xl mr-1">★</span>
+                    <span className="font-bold text-lg text-gray-800">{avgRating.toFixed(1)}</span>
+                    <span className="ml-2 text-gray-600 text-sm">({ratingCount} rating{ratingCount > 1 ? 's' : ''})</span>
+                  </div>
+                )}
               </div>
             </div>
             <div className="absolute right-8 top-[250px] flex gap-4">
@@ -115,7 +134,15 @@ export default function PublicProfile() {
                 alt={property.title}
               />
               <div className="bg-white p-4 rounded-b-3">
-                <h4 className="font-bold text-lg mb-2">{property.title}</h4>
+                <h4 className="font-bold text-lg mb-2">
+                  <Link
+                    to={`/property-detail/${property._id || property.id}`}
+                    className="hover:text-green-800 text-black transition-colors duration-200"
+                    style={{ textDecoration: 'none' }}
+                  >
+                    {property.title}
+                  </Link>
+                </h4>
                 <div className="flex items-center text-gray-500 text-sm mb-2">
                   <span className="mr-4 flex items-center">
                     <i className="fas fa-expand text-green-700 mr-1"></i>

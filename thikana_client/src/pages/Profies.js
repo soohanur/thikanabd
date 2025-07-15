@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import coverImg from "../assect/images/profile-cover.png";
 import defaultProfile from "../assect/images/profile-thumb.png";
 import '@fortawesome/fontawesome-free/css/all.min.css';
@@ -165,6 +165,7 @@ function ProfileEditTab({ user, onUpdate }) {
 
 
 export default function Profiles() {
+  const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState("profileDetails");
   const [properties, setProperties] = useState([]); // Start with empty array, not propertiesData
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -193,6 +194,11 @@ export default function Profiles() {
   };
 
   useEffect(() => {
+    const token = localStorage.getItem('thikana_token');
+    if (!token) {
+      navigate('/login');
+      return;
+    }
     fetchProperties();
   }, []);
 
@@ -313,7 +319,6 @@ export default function Profiles() {
                   >
                     <i className={`fas fa-list-alt text-lg ${activeTab === "bookingList" ? "text-green-700" : ""} group-hover:text-green-700`}></i>
                     <span className="group-hover:text-green-700">Current Booking</span>
-                    <span className="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">{user.currentBookingCount || 0}</span>
                   </button>
                 </li>
               )}
@@ -326,7 +331,6 @@ export default function Profiles() {
                   >
                     <i className={`fas fa-user-tie text-lg ${activeTab === "bookedAgents" ? "text-green-700" : ""} group-hover:text-green-700`}></i>
                     <span className="group-hover:text-green-700">Booked Agents</span>
-                    <span className="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">{user.bookedAgentsCount || 0}</span>
                   </button>
                 </li>
               )}
@@ -337,7 +341,6 @@ export default function Profiles() {
                 >
                   <i className={`fas fa-book text-lg ${activeTab === "bookedProperty" ? "text-green-700" : ""} group-hover:text-green-700`}></i>
                   <span className="group-hover:text-green-700">Booked Property</span>
-                  <span className="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">{user.bookedPropertyCount || 0}</span>
                 </button>
               </li>
               <li className="group">
@@ -430,7 +433,6 @@ export default function Profiles() {
                 >
                   <i className={`fas fa-list-alt text-lg ${activeTab === "bookingList" ? "text-green-700" : ""} group-hover:text-green-700`}></i>
                   <span className="group-hover:text-green-700">Current Booking</span>
-                  <span className="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">{user.currentBookingCount || 0}</span>
                 </button>
               </li>
             )}
@@ -443,7 +445,6 @@ export default function Profiles() {
                 >
                   <i className={`fas fa-user-tie text-lg ${activeTab === "bookedAgents" ? "text-green-700" : ""} group-hover:text-green-700`}></i>
                   <span className="group-hover:text-green-700">Booked Agents</span>
-                  <span className="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">{user.bookedAgentsCount || 0}</span>
                 </button>
               </li>
             )}
@@ -454,7 +455,6 @@ export default function Profiles() {
               >
                 <i className={`fas fa-book text-lg ${activeTab === "bookedProperty" ? "text-green-700" : ""} group-hover:text-green-700`}></i>
                 <span className="group-hover:text-green-700">Booked Property</span>
-                <span className="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">{user.bookedPropertyCount || 0}</span>
               </button>
             </li>
             <li className="group">

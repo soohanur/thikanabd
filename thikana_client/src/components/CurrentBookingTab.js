@@ -2,9 +2,20 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { apiUrl } from "../utils/api";
 
+function StarDisplay({ value }) {
+  return (
+    <div className="flex gap-0.5 items-center">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <span key={star} className={star <= value ? "text-yellow-400 text-xl" : "text-gray-300 text-xl"}>★</span>
+      ))}
+    </div>
+  );
+}
+
 export default function BookingListTab({ user }) {
   const [bookings, setBookings] = useState([]);
   const [userDetails, setUserDetails] = useState({});
+  const [bookingRatings, setBookingRatings] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -28,6 +39,14 @@ export default function BookingListTab({ user }) {
           } catch {}
         }));
         setUserDetails(details);
+        // Fetch ratings for these bookings
+        const bookingIds = res.data.map(b => b._id);
+        if (bookingIds.length > 0) {
+          const ratingsRes = await axios.post(apiUrl('/api/agent/booking/ratings-for-bookings'), { bookingIds }, { headers: { Authorization: `Bearer ${token}` } });
+          const ratingsMap = {};
+          ratingsRes.data.forEach(r => { ratingsMap[r.bookingId] = r; });
+          setBookingRatings(ratingsMap);
+        }
       } catch (err) {
         setError("Failed to load bookings.");
       } finally {
@@ -37,9 +56,17 @@ export default function BookingListTab({ user }) {
     fetchBookings();
   }, []);
 
+  // Only show paid bookings, sorted latest first
+  const paidBookings = bookings.filter(b => b.payment === 'paid').sort((a, b) => {
+    if (a.createdAt && b.createdAt) {
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    }
+    return (b._id?.toString() || '').localeCompare(a._id?.toString() || '');
+  });
+
   return (
-    <div className="w-full max-w-2xl mx-auto bg-white rounded-xl shadow p-8">
-      <h2 className="text-2xl font-bold mb-6 text-center">Current Bookings</h2>
+    <div className="w-full min-h-screen p-4 flex flex-col items-center">
+      <h2 className="text-3xl font-bold mb-8 text-center text-green-700 drop-shadow">Current Bookings</h2>
       {loading ? (
         <div className="text-center text-gray-500">Loading...</div>
       ) : error ? (
@@ -47,39 +74,66 @@ export default function BookingListTab({ user }) {
       ) : bookings.length === 0 ? (
         <div className="text-center text-gray-500">No current bookings yet.</div>
       ) : (
-        <div className="space-y-6">
-          {bookings.map((booking) => {
+        <ul className="w-full max-w-5xl flex flex-col gap-6">
+          {paidBookings.map((booking) => {
             const bookedUser = userDetails[booking.userId];
             return (
-              <div key={booking._id} className="border rounded-lg p-4 flex flex-col md:flex-row gap-4 items-center">
+              <li
+                key={booking._id}
+                className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-shadow flex flex-col md:flex-row items-center gap-6 p-6 border border-gray-100 relative md:items-stretch"
+              >
                 {/* User details */}
-                <div className="flex flex-col items-center w-full md:w-1/3">
+                <div className="flex flex-col items-center w-full md:w-1/5 mb-4 md:mb-0">
                   <img
                     src={bookedUser?.profilePicture ? (bookedUser.profilePicture.startsWith('http') ? bookedUser.profilePicture : apiUrl(bookedUser.profilePicture)) : undefined}
                     alt="User"
-                    className="w-20 h-20 rounded-full bg-gray-200 mb-2 object-cover"
+                    className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-gray-200 mb-2 object-cover border-4 border-white shadow"
                   />
-                  <div className="font-bold text-lg text-center">{bookedUser?.name || "User"}</div>
-                  <div className="text-xs text-gray-500 text-center">ID: {booking.userId}</div>
+                  <div className="font-bold text-lg text-center text-gray-800 truncate max-w-[120px]">{bookedUser?.name || "User"}</div>
+                  <div className="flex gap-2 mt-2 flex-wrap justify-center">
+                    <button
+                      className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-full font-semibold shadow text-xs transition"
+                      onClick={() => window.location.href = `/messages/${booking.userId}`}
+                    >
+                      Message
+                    </button>
+                    {bookedUser?.phone && (
+                      <a
+                        href={`tel:${bookedUser.phone}`}
+                        className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-full font-semibold shadow text-xs transition flex items-center"
+                        style={{ textDecoration: 'none' }}
+                      >
+                        Call Now
+                      </a>
+                    )}
+                  </div>
                 </div>
                 {/* Booking details */}
-                <div className="flex-1 w-full">
+                <div className="flex-1 w-full grid grid-cols-1 md:grid-cols-2 gap-0 pr-0 md:pr-32 relative">
                   <div className="mb-1"><span className="font-semibold">Service:</span> {booking.service}</div>
                   <div className="mb-1"><span className="font-semibold">Name:</span> {booking.name}</div>
                   <div className="mb-1"><span className="font-semibold">Address:</span> {booking.address}</div>
                   <div className="mb-1"><span className="font-semibold">Phone:</span> {booking.phone}</div>
                   <div className="mb-1"><span className="font-semibold">Email:</span> {booking.email}</div>
                   <div className="mb-1"><span className="font-semibold">Description:</span> {booking.description}</div>
-                  <div className="mb-1"><span className="font-semibold">Payment:</span> {booking.payment === "paid" ? (
-                    <span className="text-green-600 font-bold">Paid</span>
-                  ) : (
-                    <span className="text-yellow-600 font-bold">Unpaid</span>
-                  )}</div>
+                  {/* Booking date bottom right */}
+                  <div className="absolute right-0 bottom-0 text-xs text-gray-400 italic pr-2 pb-1">
+                    Booked: {booking.createdAt ? new Date(booking.createdAt).toLocaleString() : "Unknown"}
+                  </div>
+                  {/* Rating display right side */}
+                  {bookingRatings[booking._id] && (
+                    <div className="absolute right-0 top-0 flex flex-col items-end pr-2 pt-1">
+                      <StarDisplay value={bookingRatings[booking._id].rating} />
+                      {bookingRatings[booking._id].comment && (
+                        <div className="text-xs text-gray-600 max-w-xs text-right mt-1 bg-gray-100 rounded p-1">{bookingRatings[booking._id].comment}</div>
+                      )}
+                    </div>
+                  )}
                 </div>
-              </div>
+              </li>
             );
           })}
-        </div>
+        </ul>
       )}
     </div>
   );

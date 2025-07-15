@@ -25,6 +25,7 @@ let messagesCollection;
 let bookingsCollection;
 const payoutsCollectionName = "payouts";
 let payoutsCollection;
+let agentRatingsCollection;
 
 async function startServer() {
     try {
@@ -43,6 +44,7 @@ async function startServer() {
         messagesCollection = database.collection("messages");
         bookingsCollection = database.collection("bookings");
         payoutsCollection = database.collection(payoutsCollectionName);
+        agentRatingsCollection = database.collection("agent_ratings");
 
         // Start Express server after DB connection
         app.listen(PORT, () => {
@@ -778,5 +780,113 @@ app.get('/api/wallet/payouts', authenticateToken, async (req, res) => {
     res.json(payouts);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching payout history', error });
+  }
+});
+
+// --- Agent Rating API ---
+// POST /api/agent/:agentId/rating - Submit a rating for an agent
+app.post('/api/agent/:agentId/rating', authenticateToken, async (req, res) => {
+  try {
+    const agentId = req.params.agentId;
+    const userId = req.user.userId;
+    const { rating, comment, bookingId } = req.body;
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({ message: 'Rating must be between 1 and 5' });
+    }
+    if (!bookingId) {
+      return res.status(400).json({ message: 'bookingId is required' });
+    }
+    // Prevent duplicate rating for the same booking by the same user
+    const existing = await agentRatingsCollection.findOne({ userId, bookingId });
+    if (existing) {
+      return res.status(400).json({ message: 'You have already rated this booking.' });
+    }
+    const ratingDoc = {
+      agentId,
+      userId,
+      bookingId,
+      rating: Number(rating),
+      comment: comment || '',
+      createdAt: new Date(),
+    };
+    await agentRatingsCollection.insertOne(ratingDoc);
+    res.status(201).json({ message: 'Rating submitted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error submitting rating', error });
+  }
+});
+
+// GET /api/agent/:agentId/ratings - Get ratings for an agent
+app.get('/api/agent/:agentId/ratings', async (req, res) => {
+  try {
+    const agentId = req.params.agentId;
+    const ratings = await agentRatingsCollection.find({ agentId }).toArray();
+    res.json(ratings);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching ratings', error });
+  }
+});
+
+// GET /api/agent/:agentId/rating/average - Get average rating for an agent
+app.get('/api/agent/:agentId/rating/average', async (req, res) => {
+  try {
+    const agentId = req.params.agentId;
+    const result = await agentRatingsCollection.aggregate([
+      { $match: { agentId } },
+      { $group: { _id: null, averageRating: { $avg: '$rating' } } },
+    ]).toArray();
+    const averageRating = result[0]?.averageRating || 0;
+    res.json({ averageRating });
+  } catch (error) {
+    res.status(500).json({ message: 'Error calculating average rating', error });
+  }
+});
+
+// POST /api/agent/booking/ratings-by-user - Get ratings for a list of bookings by the current user
+app.post('/api/agent/booking/ratings-by-user', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { bookingIds } = req.body;
+    if (!Array.isArray(bookingIds) || bookingIds.length === 0) {
+      return res.json([]);
+    }
+    // Find ratings by this user for these bookings
+    const ratings = await agentRatingsCollection.find({
+      userId,
+      bookingId: { $in: bookingIds }
+    }).toArray();
+    res.json(ratings);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching ratings', error });
+  }
+});
+
+// POST /api/agent/booking/ratings-for-bookings - Get all ratings for a list of bookings (for agent view)
+app.post('/api/agent/booking/ratings-for-bookings', authenticateToken, async (req, res) => {
+  try {
+    const { bookingIds } = req.body;
+    if (!Array.isArray(bookingIds) || bookingIds.length === 0) {
+      return res.json([]);
+    }
+    // Find all ratings for these bookings
+    const ratings = await agentRatingsCollection.find({ bookingId: { $in: bookingIds } }).toArray();
+    res.json(ratings);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching ratings', error });
+  }
+});
+
+// DELETE /api/bookings/:id - Delete a booking (only if owned by user)
+app.delete('/api/bookings/:id', authenticateToken, async (req, res) => {
+  try {
+    const bookingId = req.params.id;
+    const userId = req.user.userId;
+    const booking = await bookingsCollection.findOne({ _id: new ObjectId(bookingId) });
+    if (!booking) return res.status(404).json({ message: 'Booking not found' });
+    if (booking.userId !== userId) return res.status(403).json({ message: 'Unauthorized' });
+    await bookingsCollection.deleteOne({ _id: new ObjectId(bookingId) });
+    res.json({ message: 'Booking deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting booking', error });
   }
 });

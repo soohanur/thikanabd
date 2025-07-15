@@ -47,11 +47,8 @@ export default function FeaturedProperties() {
         } catch {}
     };
 
-    // Sort properties: latest verified first, then latest unverified
+    // Sort properties: latest upload first (by _id descending)
     const sortedPropertyData = properties.slice().sort((a, b) => {
-        if (a.verified && !b.verified) return -1;
-        if (!a.verified && b.verified) return 1;
-        // Both same verified status, sort by _id (MongoDB ObjectId) descending (latest first)
         return (b._id?.toString() || '').localeCompare(a._id?.toString() || '');
     });
 

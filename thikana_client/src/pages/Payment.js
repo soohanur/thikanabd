@@ -65,41 +65,52 @@ export default function Payment() {
   };
 
   return (
-    <div className="w-full max-w-xl mx-auto bg-white rounded-xl shadow p-8 mt-12">
-      <h2 className="text-2xl font-bold mb-6 text-center">Payment</h2>
-      {loading ? (
-        <div className="text-center text-gray-500">Loading...</div>
-      ) : error ? (
-        <div className="text-center text-red-500">{error}</div>
-      ) : booking && agent ? (
-        <>
-          <div className="mb-4 text-center">
-            <div className="font-bold text-lg">Agent: {agent.name}</div>
-            <img
-              src={agent.profilePicture ? (agent.profilePicture.startsWith('http') ? agent.profilePicture : apiUrl(agent.profilePicture)) : undefined}
-              alt="Agent"
-              className="w-20 h-20 rounded-full bg-gray-200 mx-auto mb-2 object-cover"
-            />
-            <div className="text-gray-600">Service: {booking.service}</div>
-            <div className="text-gray-600">Agent Charge: <span className="font-bold text-green-700">৳{agent.agentCharge}</span></div>
-          </div>
-          <div className="mb-4">
-            <div className="font-semibold">Booking Details:</div>
-            <div>Name: {booking.name}</div>
-            <div>Address: {booking.address}</div>
-            <div>Phone: {booking.phone}</div>
-            <div>Email: {booking.email}</div>
-            <div>Description: {booking.description}</div>
-          </div>
-          <button
-            className="bg-green-600 text-white px-6 py-2 rounded font-bold w-full"
-            onClick={handlePay}
-            disabled={redirecting}
-          >
-            {redirecting ? "Redirecting to Payment..." : `Pay ৳${agent.agentCharge} with SSLCommerz`}
-          </button>
-        </>
-      ) : null}
+    <div className="w-full min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-white px-[15px]">
+      <div className="w-full max-w-xl bg-white rounded-2xl shadow-lg p-10 text-center border border-green-100">
+        
+        {loading ? (
+          <div className="text-center text-gray-500">Loading...</div>
+        ) : error ? (
+          <div className="text-center text-red-500">{error}</div>
+        ) : booking && agent ? (
+          <>
+            <div className="mb-4 text-center">
+              <div className="font-bold text-lg">Agent: {agent.name}</div>
+              <img
+                src={agent.profilePicture ? (agent.profilePicture.startsWith('http') ? agent.profilePicture : apiUrl(agent.profilePicture)) : undefined}
+                alt="Agent"
+                className="w-20 h-20 rounded-full bg-gray-200 mx-auto mb-2 object-cover border-4 border-green-100"
+              />
+              <div className="text-gray-600">Service: {booking.service}</div>
+              <div className="text-gray-600">Agent Charge: <span className="font-bold text-green-700">৳{agent.agentCharge}</span></div>
+            </div>
+            <div className="mb-4 bg-green-50 rounded-lg p-4 border border-green-100 text-left">
+              <div className="font-semibold mb-2 text-green-700">Booking Details</div>
+              <div><span className="font-semibold">Name:</span> {booking.name}</div>
+              <div><span className="font-semibold">Address:</span> {booking.address}</div>
+              <div><span className="font-semibold">Phone:</span> {booking.phone}</div>
+              <div><span className="font-semibold">Email:</span> {booking.email}</div>
+              <div><span className="font-semibold">Description:</span> {booking.description}</div>
+            </div>
+            <div className="flex flex-col gap-3 mt-6">
+              <button
+                className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-full font-bold w-full text-lg shadow transition"
+                onClick={handlePay}
+                disabled={redirecting}
+              >
+                {redirecting ? "Redirecting to Payment..." : `Pay ৳${agent.agentCharge}`}
+              </button>
+              <button
+                className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-full font-bold w-full border border-gray-300 transition"
+                onClick={() => navigate('/profiles?tab=booked-agents')}
+                type="button"
+              >
+                Pay Later
+              </button>
+            </div>
+          </>
+        ) : null}
+      </div>
     </div>
   );
 }

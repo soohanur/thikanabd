@@ -15,6 +15,74 @@ import coverImg from "../../assect/images/profile-cover.png";
 import defaultProfile from "../../assect/images/profile-thumb.png";
 import { apiUrl } from "../../utils/api";
 
+function AgentReviews({ agentId }) {
+  const [reviews, setReviews] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    async function fetchReviews() {
+      setLoading(true);
+      try {
+        const res = await fetch(apiUrl(`/api/agent/${agentId}/ratings`));
+        const data = await res.json();
+        setReviews(Array.isArray(data) ? data : []);
+      } catch {
+        setReviews([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    if (agentId) fetchReviews();
+  }, [agentId]);
+
+  if (loading) return <div className="text-xs text-gray-400 mt-2">Loading reviews...</div>;
+  if (!reviews.length) return <div className="text-xs text-gray-400 mt-2">No reviews yet.</div>;
+  return (
+    <div className="w-full mt-2">
+      <div className="font-semibold text-gray-700 text-sm mb-1">Agent Reviews:</div>
+      <div className="flex flex-col gap-2 max-h-40 overflow-y-auto">
+        {reviews.map((r, i) => (
+          <div key={i} className="bg-gray-50 border rounded p-2 flex flex-col">
+            <div className="flex items-center gap-1 mb-1">
+              <span className="text-yellow-400 text-base">{'★'.repeat(r.rating)}</span>
+              <span className="text-gray-500 text-xs">{new Date(r.createdAt).toLocaleDateString()}</span>
+            </div>
+            {r.comment && <div className="text-xs text-gray-700 italic">{r.comment}</div>}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function AgentRatingSummary({ agentId }) {
+  const [avg, setAvg] = React.useState(null);
+  const [count, setCount] = React.useState(null);
+  React.useEffect(() => {
+    async function fetchData() {
+      try {
+        const avgRes = await fetch(apiUrl(`/api/agent/${agentId}/rating/average`));
+        const avgData = await avgRes.json();
+        setAvg(avgData.averageRating || 0);
+        const countRes = await fetch(apiUrl(`/api/agent/${agentId}/ratings`));
+        const countData = await countRes.json();
+        setCount(Array.isArray(countData) ? countData.length : 0);
+      } catch {}
+    }
+    if (agentId) fetchData();
+  }, [agentId]);
+  if (avg > 0 && count > 0) {
+    return (
+      <div className="flex items-center justify-center mt-1">
+        <span className="text-yellow-400 text-lg mr-1">★</span>
+        <span className="font-bold text-base text-gray-800">{avg.toFixed(1)}</span>
+        <span className="ml-2 text-gray-600 text-xs">({count} rating{count > 1 ? 's' : ''})</span>
+      </div>
+    );
+  }
+  return null;
+}
+
 export default function PropertyDetails() {
     const params = useParams();
     const id = params.id;
@@ -276,6 +344,14 @@ export default function PropertyDetails() {
                                             <Link to={`/public-profile/${postedUser.username || postedUser._id}`} className="block text-lg font-bold text-gray-800 hover:text-green-700 transition">
                                                 {postedUser.name || postedUser.username || 'User'}
                                             </Link>
+                                            {/* Agent Reviews and Rating Summary */}
+                                            {postedUser.agent === "agent" && (
+                                              <>
+                                                <AgentRatingSummary agentId={postedUser._id} />
+                                                <AgentReviews agentId={postedUser._id} />
+                                                
+                                              </>
+                                            )}
                                         </div>
                                         {postedUser.agent === "agent" && (
                                             <Link
@@ -288,22 +364,27 @@ export default function PropertyDetails() {
                                         )}
                                     </div>
                                 )}
-                                <div className="d-flex align-items-center mt-5 justify-content-between">
-                                    <span className="text-green-800 font-bold text-[20px] uppercase">{data?.type || "N/A"}</span>
-                                    <h5 className="text-green-800 font-bold text-[20px] uppercase">৳ {data?.price || "N/A"}</h5>
-                                </div>
+                                {/* Show price/type/rent/buy only if postedUser is not an agent */}
+                                {(!postedUser || postedUser.agent !== "agent") && (
+                                  <>
+                                    <div className="d-flex align-items-center mt-5 justify-content-between">
+                                      <span className="text-green-800 font-bold text-[20px] uppercase">{data?.type || "N/A"}</span>
+                                      <h5 className="text-green-800 font-bold text-[20px] uppercase">৳ {data?.price || "N/A"}</h5>
+                                    </div>
 
-                                <div className="d-flex mt-3">
-                                    {/* Direct message button, only if logged in and postedUser is not null */}
-                                    {localStorage.getItem('thikana_token') && postedUser && postedUser._id && (
+                                    <div className="d-flex mt-3">
+                                      {/* Direct message button, only if logged in and postedUser is not null */}
+                                      {localStorage.getItem('thikana_token') && postedUser && postedUser._id && (
                                         <Link to={`/messages/${postedUser._id}`} className="btn btn-primary w-100 me-2">
-                                            Message
+                                          Message
                                         </Link>
-                                    )}
-                                    <Link to="#" className="btn btn-primary w-100">
+                                      )}
+                                      <Link to="#" className="btn btn-primary w-100">
                                         {data?.type && data.type.toLowerCase() === 'buy' ? 'Buy Now' : 'Rent Now'}
-                                    </Link>
-                                </div>
+                                      </Link>
+                                    </div>
+                                  </>
+                                )}
                             </div>
                         </div>
                     </div>

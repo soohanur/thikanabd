@@ -156,8 +156,6 @@ export default function GridSidebar() {
             );
         });
         filtered.sort((a, b) => {
-            if (a.verified && !b.verified) return -1;
-            if (!a.verified && b.verified) return 1;
             return (b._id?.toString() || '').localeCompare(a._id?.toString() || '');
         });
         setFilteredProperties(filtered);

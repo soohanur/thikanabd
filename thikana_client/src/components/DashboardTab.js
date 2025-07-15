@@ -1,10 +1,28 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import coverImg from "../assect/images/profile-cover.png";
 import defaultProfile from "../assect/images/profile-thumb.png";
 import { Link } from "react-router-dom";
 import { apiUrl } from "../utils/api";
 
 export default function DashboardTab({ user, properties }) {
+  const [avgRating, setAvgRating] = useState(null);
+  const [ratingCount, setRatingCount] = useState(null);
+
+  useEffect(() => {
+    async function fetchAgentRatings() {
+      if (!user?._id) return;
+      try {
+        const avgRes = await fetch(apiUrl(`/api/agent/${user._id}/rating/average`));
+        const avgData = await avgRes.json();
+        setAvgRating(avgData.averageRating || 0);
+        const countRes = await fetch(apiUrl(`/api/agent/${user._id}/ratings`));
+        const countData = await countRes.json();
+        setRatingCount(Array.isArray(countData) ? countData.length : 0);
+      } catch {}
+    }
+    fetchAgentRatings();
+  }, [user?._id]);
+
   return (
     <>
       <div className="w-full mb-8 relative">
@@ -15,17 +33,27 @@ export default function DashboardTab({ user, properties }) {
             className="w-full h-56 object-cover rounded-3xl"
           />
           {/* Avatar and name on left, buttons on right */}
-          <div className="absolute left-8 bottom-[-58px] flex items-center gap-4">
-            <div className="w-24 h-24 rounded-full border-4 border-white bg-white flex items-center justify-center overflow-hidden shadow-lg">
-              <img
-                src={user?.profilePicture ? (user.profilePicture.startsWith('http') ? user.profilePicture : apiUrl(user.profilePicture)) : defaultProfile}
-                alt="Profile"
-                className="w-full h-full object-cover"
-              />
+          <div className="absolute left-8 bottom-[-58px] flex items-center gap-4 w-[calc(100%-4rem)] justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-24 h-24 rounded-full border-4 border-white bg-white flex items-center justify-center overflow-hidden shadow-lg">
+                <img
+                  src={user?.profilePicture ? (user.profilePicture.startsWith('http') ? user.profilePicture : apiUrl(user.profilePicture)) : defaultProfile}
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="ml-2">
+                <h3 className="text-xl mt-5 font-bold text-gray-800">{user?.name || "User Name"}</h3>
+              </div>
             </div>
-            <div className="ml-2">
-              <h3 className="text-xl mt-5 font-bold text-gray-800">{user?.name || "User Name"}</h3>
-            </div>
+            {/* Agent rating display */}
+            {avgRating > 0 && ratingCount > 0 && (
+              <div className="flex items-center mt-5 mr-4">
+                <span className="text-yellow-400 text-2xl mr-1">★</span>
+                <span className="font-bold text-lg text-gray-800">{avgRating.toFixed(1)}</span>
+                <span className="ml-2 text-gray-600 text-sm">({ratingCount} rating{ratingCount > 1 ? 's' : ''})</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
