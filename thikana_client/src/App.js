@@ -17,7 +17,12 @@ import AgentDetail from "./pages/agent-detail";
 import { Navigate } from "react-router-dom";
 import PublicProfile from "./pages/public-profile"; // Import the PublicProfile component
 import MessagesPage from "./pages/messages";
+import Booking from "./pages/Booking";
 import './App.css';
+import Payment from "./pages/Payment";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentFail from "./pages/PaymentFail";
+import PaymentCancel from "./pages/PaymentCancel";
 
 
 function PrivateRoute({ children }) {
@@ -45,6 +50,11 @@ function App() {
        <Route path="/public-profile/:username" element={<PublicProfile/>}/>
        <Route path="/messages" element={<PrivateRoute><MessagesPage /></PrivateRoute>} />
        <Route path="/messages/:userId" element={<PrivateRoute><MessagesPage /></PrivateRoute>} />
+       <Route path="/book-agent/:agentId" element={<Booking />} />
+       <Route path="/payment" element={<PrivateRoute><Payment /></PrivateRoute>} />
+       <Route path="/payment-success" element={<PaymentSuccess />} />
+       <Route path="/payment-fail" element={<PaymentFail />} />
+       <Route path="/payment-cancel" element={<PaymentCancel />} />
        <Route path="*" element={<Error/>}/>
     </Routes>
     <ScrollTop/>

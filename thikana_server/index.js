@@ -4,6 +4,7 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const path = require('path');
+const SSLCommerzPayment = require('sslcommerz-lts');
 require('dotenv').config();
 
 const app = express();
@@ -19,6 +20,9 @@ const uri = "mongodb+srv://thikanadb:cWb07pYg13fHVbJk@thikana-project.ckxbymy.mo
 let usersCollection;
 let propertiesCollection;
 let messagesCollection;
+let bookingsCollection;
+const payoutsCollectionName = "payouts";
+let payoutsCollection;
 
 async function startServer() {
     try {
@@ -34,7 +38,9 @@ async function startServer() {
         const database = client.db("thikana-project");
         usersCollection = database.collection("thikana_user");
         propertiesCollection = database.collection("properties");
-        messagesCollection = database.collection("messages"); // <-- Add messages collection
+        messagesCollection = database.collection("messages");
+        bookingsCollection = database.collection("bookings");
+        payoutsCollection = database.collection(payoutsCollectionName);
 
         // Start Express server after DB connection
         app.listen(PORT, () => {
@@ -536,5 +542,239 @@ app.get('/api/wishlist', authenticateToken, async (req, res) => {
     res.json(propertyObjs);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching wishlist', error });
+  }
+});
+
+// --- Booking API ---
+// POST /api/bookings - Create a new booking
+app.post('/api/bookings', authenticateToken, async (req, res) => {
+  try {
+    const { agentId, name, address, service, phone, email, description } = req.body;
+    if (!agentId || !name || !address || !service || !phone || !email) {
+      console.error('Missing required fields:', { agentId, name, address, service, phone, email });
+      return res.status(400).json({ message: 'Missing required fields', details: { agentId, name, address, service, phone, email } });
+    }
+    // Fetch agent info to get agentCharge
+    const agent = await usersCollection.findOne({ _id: new ObjectId(agentId) });
+    const agentCharge = agent?.agentCharge ? Number(agent.agentCharge) : 0;
+    const booking = {
+      agentId,
+      userId: req.user.userId,
+      name,
+      address,
+      service,
+      phone,
+      email,
+      description,
+      agentCharge, // <-- store agent fee here
+      payment: 'unpaid',
+      createdAt: new Date(),
+    };
+    const result = await bookingsCollection.insertOne(booking);
+
+    res.status(201).json({ message: 'Booking created', bookingId: result.insertedId });
+  } catch (error) {
+    console.error('Error creating booking:', error);
+    res.status(500).json({ message: 'Error creating booking', error: error.message });
+  }
+});
+
+// GET /api/bookings/user - Get all bookings made by the current user
+app.get('/api/bookings/user', authenticateToken, async (req, res) => {
+  try {
+    const bookings = await bookingsCollection.find({ userId: req.user.userId }).toArray();
+    res.json(bookings);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching user bookings', error });
+  }
+});
+
+// GET /api/bookings/agent - Get all bookings for the current agent
+app.get('/api/bookings/agent', authenticateToken, async (req, res) => {
+  try {
+    const bookings = await bookingsCollection.find({ agentId: req.user.userId }).toArray();
+    // Fetch user profile info for each booking
+    const userIds = [...new Set(bookings.map(b => b.userId))];
+    const userProfiles = {};
+    for (const uid of userIds) {
+      const user = await usersCollection.findOne({ _id: new ObjectId(uid) }, { projection: { name: 1, profilePicture: 1 } });
+      if (user) userProfiles[uid] = user;
+    }
+    // Attach user profile info to each booking
+    const bookingsWithUser = bookings.map(b => ({
+      ...b,
+      userName: userProfiles[b.userId]?.name || "User",
+      userProfilePicture: userProfiles[b.userId]?.profilePicture || ""
+    }));
+    res.json(bookingsWithUser);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching agent bookings', error });
+  }
+});
+
+// POST /api/payment/initiate - Initiate payment for a booking
+app.post('/api/payment/initiate', authenticateToken, async (req, res) => {
+  try {
+    const { bookingId } = req.body;
+    if (!bookingId) return res.status(400).json({ message: 'Missing bookingId' });
+    const booking = await bookingsCollection.findOne({ _id: new ObjectId(bookingId) });
+    if (!booking) return res.status(404).json({ message: 'Booking not found' });
+    // Fetch agent info for charge
+    const agent = await usersCollection.findOne({ _id: new ObjectId(booking.agentId) });
+    if (!agent) return res.status(404).json({ message: 'Agent not found' });
+    const amount = agent.agentCharge ? Number(agent.agentCharge) : 0;
+    if (!amount || isNaN(amount)) return res.status(400).json({ message: 'Agent charge not set' });
+
+    // Add userId to payment URLs for sandbox auto-update
+    const userId = req.user.userId;
+    const paymentData = {
+      total_amount: amount,
+      currency: 'BDT',
+      tran_id: bookingId,
+      success_url: `http://localhost:5000/api/payment/success?userId=${userId}`,
+      fail_url: `http://localhost:5000/api/payment/fail?userId=${userId}`,
+      cancel_url: `http://localhost:5000/api/payment/cancel?userId=${userId}`,
+      emi_option: 0,
+      cus_name: booking.name,
+      cus_email: booking.email,
+      cus_add1: booking.address,
+      cus_phone: booking.phone,
+      shipping_method: 'NO',
+      product_name: 'Agent Booking',
+      product_category: 'Service',
+      product_profile: 'general',
+    };
+    const store_id = 'thika6875918388ecf';
+    const store_passwd = 'thika6875918388ecf@ssl';
+    const sslcz = new SSLCommerzPayment(store_id, store_passwd, false); // false for sandbox
+    const response = await sslcz.init(paymentData);
+    if (response && response.GatewayPageURL) {
+      res.json({ url: response.GatewayPageURL });
+    } else {
+      res.status(500).json({ message: 'Failed to initiate payment' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Error initiating payment', error });
+  }
+});
+
+// POST /api/payment/success - SSLCommerz payment success callback
+app.post('/api/payment/success', async (req, res) => {
+  try {
+    // In sandbox, mark the latest unpaid booking for the user as paid
+    const userId = req.body.userId || req.query.userId;
+    if (userId) {
+      const latestUnpaid = await bookingsCollection.findOne({ userId, payment: 'unpaid' }, { sort: { createdAt: -1 } });
+      if (latestUnpaid) {
+        await bookingsCollection.updateOne(
+          { _id: latestUnpaid._id },
+          { $set: { payment: 'paid' } }
+        );
+        // Add 75% agent fee to agent's wallet
+        await addToAgentWallet(latestUnpaid.agentId, latestUnpaid.agentCharge);
+      }
+    }
+    res.redirect(`http://localhost:3000/payment-success`);
+  } catch (error) {
+    res.status(500).send('Error updating payment status');
+  }
+});
+
+// POST /api/payment/fail - SSLCommerz payment fail callback
+app.post('/api/payment/fail', async (req, res) => {
+  try {
+    const { tran_id } = req.body;
+    // Optionally log or handle failed payment
+    res.redirect(`http://localhost:3000/payment-fail?bookingId=${tran_id}`);
+  } catch (error) {
+    res.status(500).send('Error handling payment fail');
+  }
+});
+
+// POST /api/payment/cancel - SSLCommerz payment cancel callback
+app.post('/api/payment/cancel', async (req, res) => {
+  try {
+    const { tran_id } = req.body;
+    // Optionally log or handle cancelled payment
+    res.redirect(`http://localhost:3000/payment-cancel?bookingId=${tran_id}`);
+  } catch (error) {
+    res.status(500).send('Error handling payment cancel');
+  }
+});
+
+app.get('/api/payment/success', async (req, res) => {
+  try {
+    const userId = req.query.userId || req.body?.userId;
+    if (userId) {
+      const latestUnpaid = await bookingsCollection.findOne({ userId, payment: 'unpaid' }, { sort: { createdAt: -1 } });
+      if (latestUnpaid) {
+        await bookingsCollection.updateOne(
+          { _id: latestUnpaid._id },
+          { $set: { payment: 'paid' } }
+        );
+        // Add 75% agent fee to agent's wallet
+        await addToAgentWallet(latestUnpaid.agentId, latestUnpaid.agentCharge);
+      }
+    }
+    res.redirect(`http://localhost:3000/payment-success`);
+  } catch (error) {
+    res.status(500).send('Error updating payment status');
+  }
+});
+
+// When marking booking as paid, update agent's wallet balance
+async function addToAgentWallet(agentId, agentCharge) {
+  if (!agentId || !agentCharge) return;
+  const walletAmount = agentCharge * 0.75;
+  await usersCollection.updateOne(
+    { _id: new ObjectId(agentId) },
+    { $inc: { walletBalance: walletAmount } }
+  );
+}
+
+// POST /api/wallet/withdraw - Agent requests payout
+app.post('/api/wallet/withdraw', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { amount } = req.body;
+    if (!amount || amount < 1000) {
+      return res.status(400).json({ message: 'Minimum withdrawal amount is 1000' });
+    }
+    const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
+    if (!user || user.walletBalance < amount) {
+      return res.status(400).json({ message: 'Insufficient wallet balance' });
+    }
+    const bkashNumber = user.bkash;
+    if (!bkashNumber) {
+      return res.status(400).json({ message: 'Bkash number not set in your profile. Please update your profile.' });
+    }
+    // Create payout request
+    const payout = {
+      userId,
+      amount,
+      bkashNumber,
+      status: 'pending',
+      requestedAt: new Date(),
+    };
+    await payoutsCollection.insertOne(payout);
+    // Deduct from wallet balance
+    await usersCollection.updateOne(
+      { _id: new ObjectId(userId) },
+      { $inc: { walletBalance: -amount } }
+    );
+    res.json({ message: 'Withdrawal request submitted', payout });
+  } catch (error) {
+    res.status(500).json({ message: 'Error submitting withdrawal request', error });
+  }
+});
+
+// GET /api/wallet/payouts - Agent views payout history
+app.get('/api/wallet/payouts', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const payouts = await payoutsCollection.find({ userId }).sort({ requestedAt: -1 }).toArray();
+    res.json(payouts);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching payout history', error });
   }
 });
