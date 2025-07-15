@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { apiUrl } from "../utils/api";
 
 export default function Payment() {
   const [searchParams] = useSearchParams();
@@ -23,7 +24,7 @@ export default function Payment() {
           return;
         }
         const token = localStorage.getItem("thikana_token");
-        const res = await axios.get("http://localhost:5000/api/bookings/user", {
+        const res = await axios.get(apiUrl("/api/bookings/user"), {
           headers: { Authorization: `Bearer ${token}` },
         });
         const found = res.data.find(b => b._id === bookingId || b._id?.toString() === bookingId);
@@ -33,7 +34,7 @@ export default function Payment() {
           return;
         }
         setBooking(found);
-        const agentRes = await axios.get(`http://localhost:5000/api/users/${found.agentId}`);
+        const agentRes = await axios.get(apiUrl(`/api/users/${found.agentId}`));
         setAgent(agentRes.data.user);
       } catch (err) {
         setError("Failed to load booking or agent info.");
@@ -48,7 +49,7 @@ export default function Payment() {
     setRedirecting(true);
     try {
       const token = localStorage.getItem("thikana_token");
-      const res = await axios.post("http://localhost:5000/api/payment/initiate", { bookingId }, {
+      const res = await axios.post(apiUrl("/api/payment/initiate"), { bookingId }, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.data.url) {
@@ -75,7 +76,7 @@ export default function Payment() {
           <div className="mb-4 text-center">
             <div className="font-bold text-lg">Agent: {agent.name}</div>
             <img
-              src={agent.profilePicture ? (agent.profilePicture.startsWith('http') ? agent.profilePicture : `http://localhost:5000${agent.profilePicture}`) : undefined}
+              src={agent.profilePicture ? (agent.profilePicture.startsWith('http') ? agent.profilePicture : apiUrl(agent.profilePicture)) : undefined}
               alt="Agent"
               className="w-20 h-20 rounded-full bg-gray-200 mx-auto mb-2 object-cover"
             />

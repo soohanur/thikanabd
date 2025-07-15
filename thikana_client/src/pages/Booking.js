@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { apiUrl } from "../utils/api";
 
 const SERVICE_OPTIONS = [
   "Sell a Property",
@@ -41,7 +42,7 @@ export default function Booking() {
     setError("");
     try {
       const token = localStorage.getItem("thikana_token");
-      const res = await axios.post("http://localhost:5000/api/bookings", { ...form, agentId }, {
+      const res = await axios.post(apiUrl("/api/bookings"), { ...form, agentId }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       console.log("Booking API response:", res.data); // Debug log

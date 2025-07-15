@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import defaultProfile from "../assect/images/profile-thumb.png";
+import { apiUrl } from "../utils/api";
 
 const MIN_WITHDRAWAL = 1000;
 
@@ -21,7 +22,7 @@ export default function WalletTab({ user }) {
       try {
         const token = localStorage.getItem("thikana_token");
         // Get all paid bookings for this agent
-        const res = await axios.get("http://localhost:5000/api/bookings/agent", {
+        const res = await axios.get(apiUrl("/api/bookings/agent"), {
           headers: { Authorization: `Bearer ${token}` },
         });
         const paidBookings = res.data.filter(b => b.payment === "paid" && b.agentCharge);
@@ -43,7 +44,7 @@ export default function WalletTab({ user }) {
       setPayoutLoading(true);
       try {
         const token = localStorage.getItem("thikana_token");
-        const res = await axios.get("http://localhost:5000/api/wallet/payouts", {
+        const res = await axios.get(apiUrl("/api/wallet/payouts"), {
           headers: { Authorization: `Bearer ${token}` },
         });
         setPayouts(res.data);
@@ -65,7 +66,7 @@ export default function WalletTab({ user }) {
     }
     try {
       const token = localStorage.getItem("thikana_token");
-      const res = await axios.post("http://localhost:5000/api/wallet/withdraw", {
+      const res = await axios.post(apiUrl("/api/wallet/withdraw"), {
         amount: Number(withdrawAmount),
       }, {
         headers: { Authorization: `Bearer ${token}` },
@@ -73,7 +74,7 @@ export default function WalletTab({ user }) {
       setWithdrawMsg(res.data.message || "Withdrawal request submitted.");
       setWithdrawAmount("");
       // Refresh payout history
-      const payoutRes = await axios.get("http://localhost:5000/api/wallet/payouts", {
+      const payoutRes = await axios.get(apiUrl("/api/wallet/payouts"), {
         headers: { Authorization: `Bearer ${token}` },
       });
       setPayouts(payoutRes.data);
@@ -121,7 +122,7 @@ export default function WalletTab({ user }) {
                   src={tx.userProfilePicture
                     ? (tx.userProfilePicture.startsWith('http')
                         ? tx.userProfilePicture
-                        : `http://localhost:5000${tx.userProfilePicture}`)
+                        : apiUrl(tx.userProfilePicture))
                     : defaultProfile}
                   alt="User"
                   className="w-12 h-12 rounded-full bg-gray-200 object-cover"

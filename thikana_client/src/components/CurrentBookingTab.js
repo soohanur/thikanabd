@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { apiUrl } from "../utils/api";
 
 export default function BookingListTab({ user }) {
   const [bookings, setBookings] = useState([]);
@@ -13,7 +14,7 @@ export default function BookingListTab({ user }) {
       setError("");
       try {
         const token = localStorage.getItem("thikana_token");
-        const res = await axios.get("http://localhost:5000/api/bookings/agent", {
+        const res = await axios.get(apiUrl("/api/bookings/agent"), {
           headers: { Authorization: `Bearer ${token}` },
         });
         setBookings(res.data);
@@ -22,7 +23,7 @@ export default function BookingListTab({ user }) {
         const details = {};
         await Promise.all(userIds.map(async (uid) => {
           try {
-            const userRes = await axios.get(`http://localhost:5000/api/users/${uid}`);
+            const userRes = await axios.get(apiUrl(`/api/users/${uid}`));
             details[uid] = userRes.data.user;
           } catch {}
         }));
@@ -54,7 +55,7 @@ export default function BookingListTab({ user }) {
                 {/* User details */}
                 <div className="flex flex-col items-center w-full md:w-1/3">
                   <img
-                    src={bookedUser?.profilePicture ? (bookedUser.profilePicture.startsWith('http') ? bookedUser.profilePicture : `http://localhost:5000${bookedUser.profilePicture}`) : undefined}
+                    src={bookedUser?.profilePicture ? (bookedUser.profilePicture.startsWith('http') ? bookedUser.profilePicture : apiUrl(bookedUser.profilePicture)) : undefined}
                     alt="User"
                     className="w-20 h-20 rounded-full bg-gray-200 mb-2 object-cover"
                   />

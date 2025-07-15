@@ -10,6 +10,8 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 const JWT_SECRET = 'your_secret_key'; // Use a strong secret in production
+const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
+const SERVER_URL = process.env.SERVER_URL || "http://localhost:5000";
 
 // Middleware
 app.use(cors());
@@ -631,9 +633,9 @@ app.post('/api/payment/initiate', authenticateToken, async (req, res) => {
       total_amount: amount,
       currency: 'BDT',
       tran_id: bookingId,
-      success_url: `http://localhost:5000/api/payment/success?userId=${userId}`,
-      fail_url: `http://localhost:5000/api/payment/fail?userId=${userId}`,
-      cancel_url: `http://localhost:5000/api/payment/cancel?userId=${userId}`,
+      success_url: `${SERVER_URL}/api/payment/success?userId=${userId}`,
+      fail_url: `${SERVER_URL}/api/payment/fail?userId=${userId}`,
+      cancel_url: `${SERVER_URL}/api/payment/cancel?userId=${userId}`,
       emi_option: 0,
       cus_name: booking.name,
       cus_email: booking.email,
@@ -674,7 +676,7 @@ app.post('/api/payment/success', async (req, res) => {
         await addToAgentWallet(latestUnpaid.agentId, latestUnpaid.agentCharge);
       }
     }
-    res.redirect(`http://localhost:3000/payment-success`);
+    res.redirect(`${CLIENT_URL}/payment-success`);
   } catch (error) {
     res.status(500).send('Error updating payment status');
   }
@@ -685,7 +687,7 @@ app.post('/api/payment/fail', async (req, res) => {
   try {
     const { tran_id } = req.body;
     // Optionally log or handle failed payment
-    res.redirect(`http://localhost:3000/payment-fail?bookingId=${tran_id}`);
+    res.redirect(`${CLIENT_URL}/payment-fail?bookingId=${tran_id}`);
   } catch (error) {
     res.status(500).send('Error handling payment fail');
   }
@@ -696,7 +698,7 @@ app.post('/api/payment/cancel', async (req, res) => {
   try {
     const { tran_id } = req.body;
     // Optionally log or handle cancelled payment
-    res.redirect(`http://localhost:3000/payment-cancel?bookingId=${tran_id}`);
+    res.redirect(`${CLIENT_URL}/payment-cancel?bookingId=${tran_id}`);
   } catch (error) {
     res.status(500).send('Error handling payment cancel');
   }
@@ -716,7 +718,7 @@ app.get('/api/payment/success', async (req, res) => {
         await addToAgentWallet(latestUnpaid.agentId, latestUnpaid.agentCharge);
       }
     }
-    res.redirect(`http://localhost:3000/payment-success`);
+    res.redirect(`${CLIENT_URL}/payment-success`);
   } catch (error) {
     res.status(500).send('Error updating payment status');
   }
