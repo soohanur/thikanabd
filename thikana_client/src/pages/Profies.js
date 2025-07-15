@@ -80,6 +80,8 @@ function ProfileEditTab({ user, onUpdate }) {
         setAvatarPreview(data.profilePicture || defaultProfile);
         setCoverPreview(data.coverPicture || coverImg);
       });
+      // Prevent scroll to bottom on mount
+      window.scrollTo({ top: 0, behavior: 'auto' });
     }
   }, []);
 

@@ -250,6 +250,19 @@ export default function PropertyDetails() {
 
                                 <p className="text-muted">{data?.description || "No description available."}</p>
 
+                                {/* Location Data Section */}
+                                <div className="mb-3 mt-3">
+                                    <div className="flex flex-wrap gap-3 align-items-center">
+                                        <span className="badge bg-green-700 text-white text-xl px-3 py-2 rounded font-semibold">
+                                            {data?.location || 'N/A'}
+                                        </span>
+                                        <span className="badge bg-green-700 text-xl text-white px-3 py-2 rounded font-semibold">
+                                            {data?.area || 'N/A'}
+                                        </span>
+                                        
+                                    </div>
+                                </div>
+
                                 {/* Map Section */}
                                 <div className="card map border-0">
                                     <div className="card-body p-0">

@@ -64,10 +64,10 @@ export default function LeafletLocationPicker({ value, onChange }) {
     if (input.length > 2) {
       const results = await provider.search({ query: input });
       setSearchResults(results);
-      // If the first result closely matches the input, update the map/marker
-      if (results.length > 0 && results[0].label.toLowerCase().includes(input.toLowerCase())) {
-        onChange({ lat: results[0].y, lng: results[0].x });
-      }
+      // Do NOT update marker here, only update on result click
+      // if (results.length > 0 && results[0].label.toLowerCase().includes(input.toLowerCase())) {
+      //   onChange({ lat: results[0].y, lng: results[0].x });
+      // }
     } else {
       setSearchResults([]);
     }
@@ -78,6 +78,9 @@ export default function LeafletLocationPicker({ value, onChange }) {
     setSearch(result.label);
     setSearchResults([]);
     onChange({ lat: result.y, lng: result.x });
+    if (mapRef.current) {
+      mapRef.current.setView([result.y, result.x], 15);
+    }
   };
 
   const position = value && value.lat && value.lng ? [value.lat, value.lng] : defaultPosition;

@@ -132,7 +132,7 @@ export default function ProfileTab({ user, onUpdate }) {
       </div>
       <div>
         <label className="block font-semibold mb-1">Email</label>
-        <input className="form-input w-full" style={{ border: '1px solid rgb(230, 230, 230)', borderRadius: '8px', padding: '10px' }} name="email" value={form.email} onChange={handleChange} required />
+        <input className="form-input w-full bg-gray-100 cursor-not-allowed" style={{ border: '1px solid rgb(230, 230, 230)', borderRadius: '8px', padding: '10px' }} name="email" value={form.email} onChange={handleChange} required readOnly />
       </div>
       <div>
         <label className="block font-semibold mb-1">Phone</label>

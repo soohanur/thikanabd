@@ -66,42 +66,44 @@ export default function Booking() {
   };
 
   return (
-    <div className="w-full max-w-xl mx-auto bg-white rounded-xl shadow p-8 mt-12">
-      <h2 className="text-2xl font-bold mb-6 text-center">Book Agent</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block font-semibold mb-1">Name</label>
-          <input className="form-input w-full" name="name" value={form.name} onChange={handleChange} required />
-        </div>
-        <div>
-          <label className="block font-semibold mb-1">Address</label>
-          <input className="form-input w-full" name="address" value={form.address} onChange={handleChange} required />
-        </div>
-        <div>
-          <label className="block font-semibold mb-1">Service</label>
-          <select className="form-select w-full" name="service" value={form.service} onChange={handleChange} required>
-            {SERVICE_OPTIONS.map(opt => (
-              <option key={opt} value={opt}>{opt}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="block font-semibold mb-1">Phone Number</label>
-          <input className="form-input w-full" name="phone" value={form.phone} onChange={handleChange} required />
-        </div>
-        <div>
-          <label className="block font-semibold mb-1">Email</label>
-          <input className="form-input w-full" name="email" value={form.email} onChange={handleChange} required type="email" />
-        </div>
-        <div>
-          <label className="block font-semibold mb-1">Description</label>
-          <textarea className="form-input w-full" name="description" value={form.description} onChange={handleChange} />
-        </div>
-        {error && <div className="text-red-600 font-bold">{error}</div>}
-        <button type="submit" className="bg-green-600 text-white px-6 py-2 rounded font-bold w-full" disabled={loading}>
-          {loading ? "Booking..." : "Book Agent"}
-        </button>
-      </form>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-100 via-white to-blue-100 px-4 md:px-8">
+      <div className="w-full max-w-xl bg-white rounded-2xl shadow-xl p-8 md:p-12">
+        <h2 className="text-3xl md:text-4xl font-extrabold mb-8 text-center text-green-700 tracking-tight">Book Agent</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block font-semibold mb-1 text-gray-700">Name</label>
+            <input className="form-input w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="name" value={form.name} onChange={handleChange} required />
+          </div>
+          <div>
+            <label className="block font-semibold mb-1 text-gray-700">Address</label>
+            <input className="form-input w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="address" value={form.address} onChange={handleChange} required />
+          </div>
+          <div>
+            <label className="block font-semibold mb-1 text-gray-700">Service</label>
+            <select className="form-select w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="service" value={form.service} onChange={handleChange} required>
+              {SERVICE_OPTIONS.map(opt => (
+                <option key={opt} value={opt}>{opt}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block font-semibold mb-1 text-gray-700">Phone Number</label>
+            <input className="form-input w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="phone" value={form.phone} onChange={handleChange} required />
+          </div>
+          <div>
+            <label className="block font-semibold mb-1 text-gray-700">Email</label>
+            <input className="form-input w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="email" value={form.email} onChange={handleChange} required type="email" />
+          </div>
+          <div>
+            <label className="block font-semibold mb-1 text-gray-700">Description</label>
+            <textarea className="form-input w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="description" value={form.description} onChange={handleChange} rows={3} />
+          </div>
+          {error && <div className="text-red-600 font-bold text-center">{error}</div>}
+          <button type="submit" className="bg-green-600 hover:bg-green-700 transition text-white px-8 py-3 rounded-lg font-bold w-full shadow-lg disabled:opacity-60 disabled:cursor-not-allowed" disabled={loading}>
+            {loading ? "Booking..." : "Book Agent"}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
