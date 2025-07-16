@@ -7,3 +7,6 @@ export function apiUrl(path) {
   if (path.startsWith("http")) return path;
   return `${API_BASE_URL}${path.startsWith("/") ? path : "/" + path}`;
 }
+
+// Preference: Use navigate for all link additions (client-side navigation)
+// (Set by user on 2025-07-16)

@@ -85,6 +85,7 @@ export default function Broker() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [agentStatuses, setAgentStatuses] = useState({});
+    const navigate = useNavigate();
 
     useEffect(() => {
         async function fetchAgents() {
@@ -122,15 +123,14 @@ export default function Broker() {
         };
     }, [agents]);
 
-    // Show only 9 latest agents, sorted by createdAt (descending)
+    // Show only 6 latest agents, sorted by createdAt (descending)
     const sortedAgents = [...agents]
         .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
-        .slice(0, 9);
-    // Split into 3 rows, 3 agents per row
+        .slice(0, 6);
+    // Split into 2 rows, 3 agents per row
     const rows = [
         sortedAgents.slice(0, 3),
-        sortedAgents.slice(3, 6),
-        sortedAgents.slice(6, 9)
+        sortedAgents.slice(3, 6)
     ];
 
     return (
@@ -172,6 +172,14 @@ export default function Broker() {
                                 ))}
                             </div>
                         ))}
+                    </div>
+                    <div className="flex justify-center mt-8">
+                        <button
+                            className="btn btn-primary px-6 py-2 font-semibold rounded-full shadow"
+                            onClick={() => navigate('/agents')}
+                        >
+                            View More Agents <i className="mdi mdi-arrow-right align-middle"></i>
+                        </button>
                     </div>
                 </div>
             )}

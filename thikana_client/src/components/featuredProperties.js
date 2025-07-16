@@ -73,7 +73,7 @@ export default function FeaturedProperties() {
                                 <div className="property-image position-relative overflow-hidden shadow">
                                     {/* Verified Tag */}
                                     {item.verified && (
-                                        <span className="badge bg-success position-absolute top-0 start-0 m-2">
+                                        <span className="badge bg-success position-absolute apple-blur2 top-0 start-0 m-2">
                                             Verified
                                         </span>
                                     )}
@@ -152,7 +152,7 @@ export default function FeaturedProperties() {
 
                 <div className="col-12 mt-4 pt-2">
                     <div className="text-center">
-                        <Link to="/grid-sidebar" className="mt-3 fs-6 text-primary">
+                        <Link to="/grid-sidebar" className="btn btn-primary px-6 py-2 font-semibold rounded-full shadow">
                             View More Properties <i className="mdi mdi-arrow-right align-middle"></i>
                         </Link>
                     </div>

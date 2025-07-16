@@ -433,7 +433,7 @@ export default function GridSidebar() {
                                             <div className="property-image position-relative overflow-hidden shadow rounded-t-3xl">
                                                 {/* Verified Tag */}
                                                 {item.verified && (
-                                                    <span className="badge bg-success position-absolute top-0 start-0 m-2">
+                                                    <span className="badge bg-success position-absolute apple-blur2 top-0 start-0 m-2">
                                                         Verified
                                                     </span>
                                                 )}

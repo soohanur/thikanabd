@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Carousel } from 'react-responsive-carousel';
 import 'react-responsive-carousel/lib/styles/carousel.min.css';
@@ -93,6 +93,7 @@ export default function PropertyDetails() {
     const [open, setIsOpen] = useState(false);
     const [postedUser, setPostedUser] = useState(null);
     const [postedUserStatus, setPostedUserStatus] = useState(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
         // Fetch property details from backend by _id
@@ -430,9 +431,35 @@ export default function PropertyDetails() {
                                           Message
                                         </Link>
                                       )}
-                                      <Link to="#" className="btn btn-primary w-100">
-                                        {data?.type && data.type.toLowerCase() === 'buy' ? 'Buy Now' : 'Rent Now'}
-                                      </Link>
+                                      {data?.type && data.type.toLowerCase() === 'buy' ? (
+                                        <button
+                                          className="btn btn-primary w-100"
+                                          onClick={() => {
+                                            const token = localStorage.getItem('thikana_token');
+                                            if (!token) {
+                                              navigate(`/auth-login?redirect=/buy/${data._id}`);
+                                            } else {
+                                              navigate(`/buy/${data._id}`);
+                                            }
+                                          }}
+                                        >
+                                          Buy Now
+                                        </button>
+                                      ) : (
+                                        <button
+                                          className="btn btn-primary w-100"
+                                          onClick={() => {
+                                            const token = localStorage.getItem('thikana_token');
+                                            if (!token) {
+                                              navigate(`/auth-login?redirect=/booking/${postedUser._id}`);
+                                            } else {
+                                              navigate(`/booking/${postedUser._id}`);
+                                            }
+                                          }}
+                                        >
+                                          Rent Now
+                                        </button>
+                                      )}
                                     </div>
                                   </>
                                 )}

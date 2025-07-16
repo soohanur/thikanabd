@@ -35,6 +35,7 @@ export default function BookedAgentTab({ user }) {
   const [ratingSuccess, setRatingSuccess] = useState({});
   const [ratingError, setRatingError] = useState({});
   const [userRatings, setUserRatings] = useState({});
+  const [agentStatus, setAgentStatus] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -82,6 +83,23 @@ export default function BookedAgentTab({ user }) {
       setUserRatings(ratingsMap);
     } catch {}
   }
+
+  // Fetch agent online/offline statuses
+  useEffect(() => {
+    async function fetchStatuses() {
+      const statuses = {};
+      await Promise.all(bookings.map(async (booking) => {
+        try {
+          const res = await axios.get(apiUrl(`/api/users/${booking.agentId}/status`));
+          statuses[booking.agentId] = res.data;
+        } catch {
+          statuses[booking.agentId] = { online: false };
+        }
+      }));
+      setAgentStatus(statuses);
+    }
+    if (bookings.length > 0) fetchStatuses();
+  }, [bookings]);
 
   // Sort bookings: unpaid first, then latest booking (by createdAt or _id descending)
   const sortedBookings = bookings.slice().sort((a, b) => {
@@ -211,11 +229,23 @@ export default function BookedAgentTab({ user }) {
                 </div>
                 {/* Agent details */}
                 <div className="flex flex-col items-center w-full md:w-1/5 mb-4 md:mb-0">
-                  <img
-                    src={agent?.profilePicture ? (agent.profilePicture.startsWith('http') ? agent.profilePicture : apiUrl(agent.profilePicture)) : undefined}
-                    alt="Agent"
-                    className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-gray-200 mb-2 object-cover border-4 border-white shadow"
-                  />
+                  <div className="relative mb-2">
+                    <img
+                      src={agent?.profilePicture ? (agent.profilePicture.startsWith('http') ? agent.profilePicture : apiUrl(agent.profilePicture)) : process.env.PUBLIC_URL + '/default-profile.png'}
+                      alt={agent?.name}
+                      className={`w-24 h-24 rounded-full object-cover border-4 shadow-lg group-hover:scale-110 transition-transform duration-200 ${agentStatus[booking.agentId]?.online ? 'border-green-500' : 'border-gray-400'}`}
+                      style={{ boxShadow: agentStatus[booking.agentId]?.online ? '0 0 0 4px #bbf7d0' : '0 0 0 4px #e5e7eb' }}
+                    />
+                    <span
+                      className={`absolute right-2 bottom-2 w-5 h-5 border-2 border-white rounded-full z-50 animate-pulse ${agentStatus[booking.agentId]?.online ? 'bg-green-500' : 'bg-gray-400'}`}
+                      title={agentStatus[booking.agentId]?.online ? 'Online' : 'Offline'}
+                    ></span>
+                    {agentStatus[booking.agentId] && (
+                      <span className={`absolute left-2 top-2 px-2 py-0.5 rounded-full text-xs font-bold shadow ${agentStatus[booking.agentId].online ? 'bg-green-100 text-green-700 border border-green-300' : 'bg-gray-200 text-gray-600 border border-gray-300'}`}>
+                        {agentStatus[booking.agentId].online ? 'Online' : 'Offline'}
+                      </span>
+                    )}
+                  </div>
                   <div className="font-bold text-lg text-center text-gray-800 truncate max-w-[120px]">
                     <Link to={`/public-profile/${booking.agentId}`} className="hover:underline text-green-700 hover:text-green-800 transition-colors">
                       {agent?.name || "Agent"}

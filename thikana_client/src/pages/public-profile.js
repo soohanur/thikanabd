@@ -156,7 +156,7 @@ export default function PublicProfile() {
               {user.agent === "agent" && (
                 <button
                   className="bg-green-600  text-white px-8 py-3 rounded-full font-semibold shadow hover:bg-green-700 transition text-lg"
-                  onClick={() => { /* Book Now action here */ }}
+                  onClick={() => navigate(`/book-agent/${user._id}`)}
                 >
                   Book Now
                 </button>

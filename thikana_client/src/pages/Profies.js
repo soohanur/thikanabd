@@ -437,8 +437,6 @@ export default function Profiles() {
                 </button>
               </li>
             )}
-            {/* Booked Agents only for normal users (not agents), with badge */}
-            {user?.agent !== "agent" && (
               <li className="group">
                 <button
                   className={`flex items-center gap-3 font-semibold w-full text-left px-4 py-3 rounded-lg transition-all duration-200 shadow-sm hover:scale-[1.03] hover:bg-green-50/60 group-hover:text-green-700 ${activeTab === "bookedAgents" ? "bg-green-50/80 text-green-700 shadow-md" : "text-black"}`}
@@ -448,7 +446,6 @@ export default function Profiles() {
                   <span className="group-hover:text-green-700">Booked Agents</span>
                 </button>
               </li>
-            )}
             <li className="group">
               <button
                 className={`flex items-center gap-3 font-semibold w-full text-left px-4 py-3 rounded-lg transition-all duration-200 shadow-sm hover:scale-[1.03] hover:bg-green-50/60 group-hover:text-green-700 ${activeTab === "bookedProperty" ? "bg-green-50/80 text-green-700 shadow-md" : "text-black"}`}

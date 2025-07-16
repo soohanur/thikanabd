@@ -24,6 +24,8 @@ import Payment from "./pages/Payment";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentFail from "./pages/PaymentFail";
 import PaymentCancel from "./pages/PaymentCancel";
+import Buy from "./pages/buy";
+import PaymentBuy from "./pages/PaymentBuy";
 import { OnlineStatusProvider, useOnlineStatusContext } from "./utils/OnlineStatusContext";
 import { io } from "socket.io-client";
 import { API_BASE_URL } from "./utils/api";
@@ -82,6 +84,8 @@ function App() {
        <Route path="/payment-success" element={<PaymentSuccess />} />
        <Route path="/payment-fail" element={<PaymentFail />} />
        <Route path="/payment-cancel" element={<PaymentCancel />} />
+       <Route path="/buy/:propertyId" element={<Buy />} />
+       <Route path="/PaymentBuy" element={<PaymentBuy />} />
        <Route path="*" element={<Error/>}/>
     </Routes>
     <ScrollTop/>

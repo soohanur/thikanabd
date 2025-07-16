@@ -127,9 +127,13 @@ io.on('connection', (socket) => {
 function authenticateToken(req, res, next) {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
+    console.log('Token received:', token); // Debug log
     if (!token) return res.status(401).json({ message: 'No token provided' });
     jwt.verify(token, JWT_SECRET, (err, user) => {
-        if (err) return res.status(403).json({ message: 'Invalid token' });
+        if (err) {
+            console.log('JWT error:', err); // Debug log
+            return res.status(403).json({ message: 'Invalid token', error: err });
+        }
         req.user = user;
         next();
     });
@@ -954,5 +958,119 @@ app.delete('/api/bookings/:id', authenticateToken, async (req, res) => {
     res.json({ message: 'Booking deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Error deleting booking', error });
+  }
+});
+
+// POST /api/payment/initiate-buy - Initiate payment for property buy/rent
+app.post('/api/payment/initiate-buy', authenticateToken, async (req, res) => {
+  try {
+    // REMOVE DEBUG LOGS
+    const { propertyId, phone } = req.body;
+    if (!propertyId) return res.status(400).json({ message: 'Missing propertyId' });
+    if (!phone) return res.status(400).json({ message: 'Missing phone number' });
+    const property = await propertiesCollection.findOne({ _id: new ObjectId(propertyId) });
+    if (!property) return res.status(404).json({ message: 'Property not found' });
+    const userId = req.user.userId;
+    let platformCharge = 0;
+    let total = 0;
+    if (property.type && property.type.toLowerCase() === 'buy') {
+      platformCharge = 5000;
+      total = (parseFloat(property.price) || 0) + platformCharge;
+    } else if (property.type && property.type.toLowerCase() === 'rent') {
+      platformCharge = Math.round((parseFloat(property.price) || 0) * 0.10);
+      total = (parseFloat(property.price) || 0) + platformCharge;
+    }
+    // Save a pending transaction (optional, for tracking)
+    const transaction = {
+      propertyId,
+      userId,
+      ownerId: property.userId,
+      type: property.type,
+      price: property.price,
+      platformCharge,
+      total,
+      status: 'pending',
+      createdAt: new Date(),
+      phone: phone // Save phone for record
+    };
+    const result = await bookingsCollection.insertOne(transaction); // reuse bookingsCollection for transactions
+    const tran_id = result.insertedId.toString();
+    // Prepare SSLCommerz payment
+    const paymentData = {
+      total_amount: total,
+      currency: 'BDT',
+      tran_id,
+      success_url: `${SERVER_URL}/api/payment/success-buy?userId=${userId}`,
+      fail_url: `${SERVER_URL}/api/payment/fail-buy?userId=${userId}`,
+      cancel_url: `${SERVER_URL}/api/payment/cancel-buy?userId=${userId}`,
+      emi_option: 0,
+      cus_name: req.user.name || '',
+      cus_email: req.user.email || '',
+      cus_add1: '',
+      cus_phone: phone,
+      shipping_method: 'NO',
+      product_name: property.title || 'Property',
+      product_category: property.type || 'Property',
+      product_profile: 'general',
+    };
+    const store_id = 'thika6875918388ecf';
+    const store_passwd = 'thika6875918388ecf@ssl';
+    const sslcz = new SSLCommerzPayment(store_id, store_passwd, false); // false for sandbox
+    const response = await sslcz.init(paymentData);
+    if (response && response.GatewayPageURL) {
+      res.json({ url: response.GatewayPageURL });
+    } else {
+      res.status(500).json({ message: 'Failed to initiate payment', sslczResponse: response });
+    }
+  } catch (error) {
+    console.error('Error in /api/payment/initiate-buy:', error); // Debug log
+    res.status(500).json({ message: 'Error initiating property payment', error: error.message, stack: error.stack });
+  }
+});
+
+// POST /api/payment/success-buy - SSLCommerz payment success callback for property
+app.post('/api/payment/success-buy', async (req, res) => {
+  try {
+    const userId = req.body.userId || req.query.userId;
+    const tran_id = req.body.tran_id || req.query.tran_id;
+    if (tran_id) {
+      const transaction = await bookingsCollection.findOne({ _id: new ObjectId(tran_id) });
+      if (transaction && transaction.status === 'pending') {
+        await bookingsCollection.updateOne(
+          { _id: new ObjectId(tran_id) },
+          { $set: { status: 'paid', paidAt: new Date() } }
+        );
+        // Credit property owner wallet (property price only, not platform charge)
+        if (transaction.ownerId && transaction.price) {
+          await usersCollection.updateOne(
+            { _id: new ObjectId(transaction.ownerId) },
+            { $inc: { walletBalance: parseFloat(transaction.price) } }
+          );
+        }
+      }
+    }
+    res.redirect(`${CLIENT_URL}/payment-success`);
+  } catch (error) {
+    res.status(500).send('Error updating property payment status');
+  }
+});
+
+// POST /api/payment/fail-buy - SSLCommerz payment fail callback for property
+app.post('/api/payment/fail-buy', async (req, res) => {
+  try {
+    const tran_id = req.body.tran_id || req.query.tran_id;
+    res.redirect(`${CLIENT_URL}/payment-fail?tran_id=${tran_id}`);
+  } catch (error) {
+    res.status(500).send('Error handling property payment fail');
+  }
+});
+
+// POST /api/payment/cancel-buy - SSLCommerz payment cancel callback for property
+app.post('/api/payment/cancel-buy', async (req, res) => {
+  try {
+    const tran_id = req.body.tran_id || req.query.tran_id;
+    res.redirect(`${CLIENT_URL}/payment-cancel?tran_id=${tran_id}`);
+  } catch (error) {
+    res.status(500).send('Error handling property payment cancel');
   }
 });
