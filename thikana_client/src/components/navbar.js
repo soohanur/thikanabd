@@ -4,7 +4,7 @@ import logoDark from "../assect/images/logo-dark.png";
 import logoLight from "../assect/images/logo-light.png";
 import { FiUser } from "../assect/icons/vander";
 import axios from "axios";
-import { apiUrl } from "../utils/api";
+import { apiUrl, API_BASE_URL } from "../utils/api";
 import { useOnlineStatusContext } from "../utils/OnlineStatusContext";
 import { io } from "socket.io-client";
 
@@ -16,7 +16,7 @@ function NavbarOnlineSocket() {
     const parsed = JSON.parse(localUser);
     const myId = parsed._id || parsed.userId;
     if (!myId) return;
-    const socket = io("http://localhost:5000", { autoConnect: true, reconnection: true });
+    const socket = io(API_BASE_URL, { autoConnect: true, reconnection: true });
     socket.on("connect", () => {
       socket.emit("user-online", myId);
     });

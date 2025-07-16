@@ -26,6 +26,7 @@ import PaymentFail from "./pages/PaymentFail";
 import PaymentCancel from "./pages/PaymentCancel";
 import { OnlineStatusProvider, useOnlineStatusContext } from "./utils/OnlineStatusContext";
 import { io } from "socket.io-client";
+import { API_BASE_URL } from "./utils/api";
 
 function PrivateRoute({ children }) {
     const isLoggedIn = !!localStorage.getItem('thikana_token');
@@ -35,7 +36,7 @@ function PrivateRoute({ children }) {
 function OnlineStatusGlobalSocket() {
   const { setOnlineUsers } = useOnlineStatusContext();
   React.useEffect(() => {
-    const socket = io("http://localhost:5000", { autoConnect: true, reconnection: true });
+    const socket = io(API_BASE_URL, { autoConnect: true, reconnection: true });
     const localUser = localStorage.getItem("thikana_user");
     let myId = null;
     if (localUser) {

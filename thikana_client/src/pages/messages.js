@@ -4,7 +4,7 @@ import { useParams } from "react-router-dom";
 import defaultProfile from "../assect/images/profile-thumb.png";
 import Navbar from "../components/navbar";
 import Footer from "../components/footer";
-import { apiUrl } from "../utils/api";
+import { apiUrl, API_BASE_URL } from "../utils/api";
 import { io } from "socket.io-client";
 
 function MessagesPage({ user: propUser }) {
@@ -228,7 +228,7 @@ function MessagesPage({ user: propUser }) {
 
   // Socket.io setup for real-time features
   useEffect(() => {
-    const socket = io("http://localhost:5000");
+    const socket = io(API_BASE_URL);
     if (user?.userId || user?._id) {
       socket.emit("user-online", user.userId || user._id);
     }
