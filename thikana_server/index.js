@@ -69,16 +69,30 @@ async function startServer() {
 
 startServer();
 
-// Socket.io connection
+// --- SOCKET.IO ONLINE/OFFLINE + LAST SEEN ---
 io.on('connection', (socket) => {
-  socket.on('user-online', (userId) => {
+  socket.on('user-online', async (userId) => {
     onlineUsers[userId] = socket.id;
     io.emit('online-users', Object.keys(onlineUsers));
+    // Update lastSeen to now when user comes online
+    if (usersCollection && userId) {
+      await usersCollection.updateOne(
+        { _id: new ObjectId(userId) },
+        { $set: { lastSeen: new Date() } }
+      );
+    }
   });
-  socket.on('disconnect', () => {
+  socket.on('disconnect', async () => {
     for (const [uid, sid] of Object.entries(onlineUsers)) {
       if (sid === socket.id) {
         delete onlineUsers[uid];
+        // Update lastSeen to now when user goes offline
+        if (usersCollection && uid) {
+          await usersCollection.updateOne(
+            { _id: new ObjectId(uid) },
+            { $set: { lastSeen: new Date() } }
+          );
+        }
         break;
       }
     }

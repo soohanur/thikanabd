@@ -1,3 +1,4 @@
+import React from "react";
 import { Route, Routes ,useLocation } from "react-router-dom";
 import Index from "./pages/index";
 import '../node_modules/bootstrap/dist/css/bootstrap.min.css'
@@ -23,17 +24,42 @@ import Payment from "./pages/Payment";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentFail from "./pages/PaymentFail";
 import PaymentCancel from "./pages/PaymentCancel";
-
+import { OnlineStatusProvider, useOnlineStatusContext } from "./utils/OnlineStatusContext";
+import { io } from "socket.io-client";
 
 function PrivateRoute({ children }) {
     const isLoggedIn = !!localStorage.getItem('thikana_token');
     return isLoggedIn ? children : <Navigate to="/auth-login" replace />;
   }
 
+function OnlineStatusGlobalSocket() {
+  const { setOnlineUsers } = useOnlineStatusContext();
+  React.useEffect(() => {
+    const socket = io("http://localhost:5000", { autoConnect: true, reconnection: true });
+    const localUser = localStorage.getItem("thikana_user");
+    let myId = null;
+    if (localUser) {
+      const parsed = JSON.parse(localUser);
+      myId = parsed._id || parsed.userId;
+    }
+    socket.on("connect", () => {
+      if (myId) socket.emit("user-online", myId);
+    });
+    socket.on("online-users", (users) => {
+      setOnlineUsers(users);
+    });
+    return () => {
+      socket.disconnect();
+    };
+  }, [setOnlineUsers]);
+  return null;
+}
+
 function App() {
   const location = useLocation()
   return (
-    <>
+    <OnlineStatusProvider>
+      <OnlineStatusGlobalSocket />
     <Routes>
        <Route path="/" element={<Index />}/>
        <Route path="/grid-sidebar" element={<GridSidebar/>}/>
@@ -58,7 +84,7 @@ function App() {
        <Route path="*" element={<Error/>}/>
     </Routes>
     <ScrollTop/>
-    </>
+    </OnlineStatusProvider>
   );
 }
 

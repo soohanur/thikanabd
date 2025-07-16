@@ -6,6 +6,8 @@ import coverImg from "../assect/images/profile-cover.png";
 import defaultProfile from "../assect/images/profile-thumb.png";
 import Navbar from "../components/navbar";
 import Footer from "../components/footer";
+import { useOnlineStatusContext } from "../utils/OnlineStatusContext";
+import moment from "moment";
 
 export default function PublicProfile() {
   const { username } = useParams();
@@ -15,6 +17,7 @@ export default function PublicProfile() {
   const [loading, setLoading] = useState(true);
   const [avgRating, setAvgRating] = useState(null);
   const [ratingCount, setRatingCount] = useState(null);
+  const { onlineUsers } = useOnlineStatusContext();
 
   useEffect(() => {
     async function fetchData() {
@@ -25,12 +28,13 @@ export default function PublicProfile() {
         setLoading(false);
         // If logged-in user is viewing their own profile, redirect
         const localUser = localStorage.getItem("thikana_user");
-        if (localUser) {
-          const parsed = JSON.parse(localUser);
-          if (parsed.username === username || parsed._id === username) {
-            navigate("/profiles", { replace: true });
-          }
-        }
+        // COMMENTED OUT REDIRECT FOR DEBUGGING
+        // if (localUser) {
+        //   const parsed = JSON.parse(localUser);
+        //   if (parsed.username === username || parsed._id === username) {
+        //     navigate("/profiles", { replace: true });
+        //   }
+        // }
         // Fetch agent rating info if user is agent
         if (res.data.user && res.data.user._id && res.data.user.agent === "agent") {
           const avgRes = await fetch(apiUrl(`/api/agent/${res.data.user._id}/rating/average`));
@@ -73,11 +77,18 @@ export default function PublicProfile() {
             {/* Avatar and name on left, Message button and Book Now (if agent) on right */}
             <div className="absolute left-8 bottom-[-58px] flex items-center gap-4">
               <div className="w-24 h-24 rounded-full border-4 border-white bg-white flex items-center justify-center overflow-hidden shadow-lg">
-                <img
-                  src={user.profilePicture ? (user.profilePicture.startsWith("http") ? user.profilePicture : apiUrl(user.profilePicture)) : defaultProfile}
-                  alt="Profile"
-                  className="w-full h-full object-cover"
-                />
+                <div className="relative inline-block">
+                  <img
+                    src={user?.profilePicture ? (user.profilePicture.startsWith("http") ? user.profilePicture : apiUrl(user.profilePicture)) : defaultProfile}
+                    alt={user?.name}
+                    className="w-32 h-32 rounded-full object-cover border-4 border-green-500 shadow"
+                  />
+                  {user && user._id && onlineUsers.includes(String(user._id)) ? (
+                    <span className="absolute right-2 bottom-2 w-5 h-5 bg-green-500 border-2 border-white rounded-full z-50"></span>
+                  ) : (
+                    <span className="absolute right-2 bottom-2 w-5 h-5 bg-gray-400 border-2 border-white rounded-full z-50"></span>
+                  )}
+                </div>
               </div>
               <div className="ml-2 flex items-center gap-3">
                 <h3 className="text-xl mt-5 font-bold text-gray-800">{user.name || "User Name"}</h3>

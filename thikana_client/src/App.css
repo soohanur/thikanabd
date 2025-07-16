@@ -70,4 +70,13 @@ svg.fea.icon-sm.align-middle {
   height: 20px;
   width: 36px;
 }
-
+aside.hidden.lg\:flex.sticky.top-\[72px\].h-\[calc\(100vh-72px\)\].w-1\/5.bg-white.shadow-xl.rounded-2xl.flex-col.py-10.px-5.z-10.border.border-gray-100.mr-6 {
+  margin-top: 20px !important;
+  margin-bottom: 20px;
+}
+ul.space-y-2.divide-y.divide-gray-100 {
+  padding-left: 0px !important;
+}
+ul.flex-1.overflow-y-auto.divide-y.divide-gray-100 {
+  padding: 0;
+}

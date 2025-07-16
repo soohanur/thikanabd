@@ -5,6 +5,30 @@ import logoLight from "../assect/images/logo-light.png";
 import { FiUser } from "../assect/icons/vander";
 import axios from "axios";
 import { apiUrl } from "../utils/api";
+import { useOnlineStatusContext } from "../utils/OnlineStatusContext";
+import { io } from "socket.io-client";
+
+function NavbarOnlineSocket() {
+  const { setOnlineUsers } = useOnlineStatusContext();
+  React.useEffect(() => {
+    const localUser = localStorage.getItem("thikana_user");
+    if (!localUser) return;
+    const parsed = JSON.parse(localUser);
+    const myId = parsed._id || parsed.userId;
+    if (!myId) return;
+    const socket = io("http://localhost:5000", { autoConnect: true, reconnection: true });
+    socket.on("connect", () => {
+      socket.emit("user-online", myId);
+    });
+    socket.on("online-users", (users) => {
+      setOnlineUsers(users);
+    });
+    return () => {
+      socket.disconnect();
+    };
+  }, [setOnlineUsers]);
+  return null;
+}
 
 export default function Navbar({ navClass, logolight, menuClass }) {
     const [isMenu, setIsMenu] = useState(false);
@@ -69,6 +93,7 @@ export default function Navbar({ navClass, logolight, menuClass }) {
 
     return (
         <>
+            <NavbarOnlineSocket />
             <header
                 id="topnav"
                 className={`${navClass} ${isSticky ? "sticky" : ""}`}

@@ -281,7 +281,7 @@ export default function Profiles() {
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 bg-black bg-opacity-40 flex lg:hidden" onClick={() => setSidebarOpen(false)}>
           <aside
-            className={`fixed left-0 top-[72px] h-[calc(100vh-72px)] w-4/5 max-w-xs bg-white shadow-lg flex flex-col py-8 px-4 z-50 transform transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
+            className="fixed left-0 top-[72px] h-[calc(100vh-72px)] w-4/5 max-w-xs bg-white shadow-xl rounded-2xl flex flex-col py-10 px-[10px] z-50 border border-gray-100 mr-6 overflow-y-auto transition-all duration-300"
             onClick={e => e.stopPropagation()}
           >
             <button
@@ -291,11 +291,10 @@ export default function Profiles() {
             >
               <i className="fas fa-times text-lg"></i>
             </button>
-            {/* Sidebar content (same as below) */}
-            <ul className="space-y-6 mt-8">
+            <ul className="space-y-2 divide-y divide-gray-100 mt-8">
               <li className="group">
                 <button
-                  className={`flex items-center gap-3 font-semibold w-full text-left ${activeTab === "dashboard" ? "text-green-700" : "text-black"} group-hover:text-green-700`}
+                  className={`flex items-center gap-3 font-semibold w-full text-left px-4 py-3 rounded-lg transition-all duration-200 shadow-sm hover:scale-[1.03] hover:bg-green-50/60 group-hover:text-green-700 ${activeTab === "dashboard" ? "bg-green-50/80 text-green-700 shadow-md" : "text-black"}`}
                   onClick={() => { setActiveTab("dashboard"); setSidebarOpen(false); }}
                 >
                   <i className={`fas fa-gauge text-lg ${activeTab === "dashboard" ? "text-green-700" : ""} group-hover:text-green-700`}></i>
@@ -304,7 +303,7 @@ export default function Profiles() {
               </li>
               <li className="group">
                 <button
-                  className={`flex items-center gap-3 font-semibold w-full text-left ${activeTab === "propertyList" ? "text-green-700" : "text-black"} group-hover:text-green-700`}
+                  className={`flex items-center gap-3 font-semibold w-full text-left px-4 py-3 rounded-lg transition-all duration-200 shadow-sm hover:scale-[1.03] hover:bg-green-50/60 group-hover:text-green-700 ${activeTab === "propertyList" ? "bg-green-50/80 text-green-700 shadow-md" : "text-black"}`}
                   onClick={() => { setActiveTab("propertyList"); setSidebarOpen(false); }}
                 >
                   <i className={`fas fa-layer-group text-lg ${activeTab === "propertyList" ? "text-green-700" : ""} group-hover:text-green-700`}></i>
@@ -316,7 +315,7 @@ export default function Profiles() {
               {user?.agent === "agent" && (
                 <li className="group">
                   <button
-                    className={`flex items-center gap-3 font-semibold w-full text-left ${activeTab === "bookingList" ? "text-green-700" : "text-black"} group-hover:text-green-700`}
+                    className={`flex items-center gap-3 font-semibold w-full text-left px-4 py-3 rounded-lg transition-all duration-200 shadow-sm hover:scale-[1.03] hover:bg-green-50/60 group-hover:text-green-700 ${activeTab === "bookingList" ? "bg-green-50/80 text-green-700 shadow-md" : "text-black"}`}
                     onClick={() => { setActiveTab("bookingList"); setSidebarOpen(false); }}
                   >
                     <i className={`fas fa-list-alt text-lg ${activeTab === "bookingList" ? "text-green-700" : ""} group-hover:text-green-700`}></i>
@@ -328,7 +327,7 @@ export default function Profiles() {
               {user?.agent !== "agent" && (
                 <li className="group">
                   <button
-                    className={`flex items-center gap-3 font-semibold w-full text-left ${activeTab === "bookedAgents" ? "text-green-700" : "text-black"} group-hover:text-green-700`}
+                    className={`flex items-center gap-3 font-semibold w-full text-left px-4 py-3 rounded-lg transition-all duration-200 shadow-sm hover:scale-[1.03] hover:bg-green-50/60 group-hover:text-green-700 ${activeTab === "bookedAgents" ? "bg-green-50/80 text-green-700 shadow-md" : "text-black"}`}
                     onClick={() => { setActiveTab("bookedAgents"); setSidebarOpen(false); }}
                   >
                     <i className={`fas fa-user-tie text-lg ${activeTab === "bookedAgents" ? "text-green-700" : ""} group-hover:text-green-700`}></i>
@@ -338,7 +337,7 @@ export default function Profiles() {
               )}
               <li className="group">
                 <button
-                  className={`flex items-center gap-3 font-semibold w-full text-left ${activeTab === "bookedProperty" ? "text-green-700" : "text-black"} group-hover:text-green-700`}
+                  className={`flex items-center gap-3 font-semibold w-full text-left px-4 py-3 rounded-lg transition-all duration-200 shadow-sm hover:scale-[1.03] hover:bg-green-50/60 group-hover:text-green-700 ${activeTab === "bookedProperty" ? "bg-green-50/80 text-green-700 shadow-md" : "text-black"}`}
                   onClick={() => { setActiveTab("bookedProperty"); setSidebarOpen(false); }}
                 >
                   <i className={`fas fa-book text-lg ${activeTab === "bookedProperty" ? "text-green-700" : ""} group-hover:text-green-700`}></i>
@@ -347,7 +346,7 @@ export default function Profiles() {
               </li>
               <li className="group">
                 <button
-                  className={`flex items-center gap-3 font-semibold w-full text-left ${activeTab === "postProperty" ? "text-green-700" : "text-black"} group-hover:text-green-700`}
+                  className={`flex items-center gap-3 font-semibold w-full text-left px-4 py-3 rounded-lg transition-all duration-200 shadow-sm hover:scale-[1.03] hover:bg-green-50/60 group-hover:text-green-700 ${activeTab === "postProperty" ? "bg-green-50/80 text-green-700 shadow-md" : "text-black"}`}
                   onClick={() => { setActiveTab("postProperty"); setSidebarOpen(false); }}
                 >
                   <i className={`fas fa-file-alt text-lg ${activeTab === "postProperty" ? "text-green-700" : ""} group-hover:text-green-700`}></i>
@@ -356,7 +355,7 @@ export default function Profiles() {
               </li>
               <li className="group">
                 <button
-                  className={`flex items-center gap-3 font-semibold w-full text-left ${activeTab === "wallet" ? "text-green-700" : "text-black"} group-hover:text-green-700`}
+                  className={`flex items-center gap-3 font-semibold w-full text-left px-4 py-3 rounded-lg transition-all duration-200 shadow-sm hover:scale-[1.03] hover:bg-green-50/60 group-hover:text-green-700 ${activeTab === "wallet" ? "bg-green-50/80 text-green-700 shadow-md" : "text-black"}`}
                   onClick={() => { setActiveTab("wallet"); setSidebarOpen(false); }}
                 >
                   <i className={`fas fa-wallet text-lg ${activeTab === "wallet" ? "text-green-700" : ""} group-hover:text-green-700`}></i>
@@ -365,7 +364,7 @@ export default function Profiles() {
               </li>
               <li className="group">
                 <button
-                  className={`flex items-center gap-3 font-semibold w-full text-left ${activeTab === "saved" ? "text-green-700" : "text-black"} group-hover:text-green-700`}
+                  className={`flex items-center gap-3 font-semibold w-full text-left px-4 py-3 rounded-lg transition-all duration-200 shadow-sm hover:scale-[1.03] hover:bg-green-50/60 group-hover:text-green-700 ${activeTab === "saved" ? "bg-green-50/80 text-green-700 shadow-md" : "text-black"}`}
                   onClick={() => { setActiveTab("saved"); setSidebarOpen(false); }}
                 >
                   <i className={`fas fa-heart text-lg ${activeTab === "saved" ? "text-green-700" : ""} group-hover:text-green-700`}></i>
@@ -375,7 +374,7 @@ export default function Profiles() {
               </li>
               <li className="group">
                 <button
-                  className={`flex items-center gap-3 font-semibold w-full text-left ${activeTab === "profile" ? "text-green-700" : "text-black"} group-hover:text-green-700`}
+                  className={`flex items-center gap-3 font-semibold w-full text-left px-4 py-3 rounded-lg transition-all duration-200 shadow-sm hover:scale-[1.03] hover:bg-green-50/60 group-hover:text-green-700 ${activeTab === "profile" ? "bg-green-50/80 text-green-700 shadow-md" : "text-black"}`}
                   onClick={() => { setActiveTab("profile"); setSidebarOpen(false); }}
                 >
                   <i className={`fas fa-user text-lg ${activeTab === "profile" ? "text-green-700" : ""} group-hover:text-green-700`}></i>
@@ -384,7 +383,7 @@ export default function Profiles() {
               </li>
               <li className="group">
                 <button
-                  className={`flex items-center gap-3 font-semibold w-full text-left ${activeTab === "becomeAgent" ? "text-green-700" : "text-black"} group-hover:text-green-700`}
+                  className={`flex items-center gap-3 font-semibold w-full text-left px-4 py-3 rounded-lg transition-all duration-200 shadow-sm hover:scale-[1.03] hover:bg-green-50/60 group-hover:text-green-700 ${activeTab === "becomeAgent" ? "bg-green-50/80 text-green-700 shadow-md" : "text-black"}`}
                   onClick={() => { setActiveTab("becomeAgent"); setSidebarOpen(false); }}
                 >
                   <i className={`fas fa-user-tie text-lg ${activeTab === "becomeAgent" ? "text-green-700" : ""} group-hover:text-green-700`}></i>
@@ -405,11 +404,11 @@ export default function Profiles() {
       )}
       <div className="flex flex-col lg:flex-row w-full" style={{ minHeight: 'calc(100vh - 72px)', paddingTop: '72px' }}>
         {/* Left Sidebar (desktop) */}
-        <aside className="hidden lg:flex sticky top-[72px] h-[calc(100vh-72px)] w-1/5 bg-white shadow-lg flex-col py-8 px-4 z-10">
-          <ul className="space-y-6">
+        <aside className="hidden lg:flex sticky top-[72px] h-[calc(100vh-72px)] w-1/5 bg-white shadow-xl rounded-2xl flex-col py-10 px-5 z-10 border border-gray-100 mr-6">
+          <ul className="space-y-2 divide-y divide-gray-100">
             <li className="group">
               <button
-                className={`flex items-center gap-3 font-semibold w-full text-left ${activeTab === "dashboard" ? "text-green-700" : "text-black"} group-hover:text-green-700`}
+                className={`flex items-center gap-3 font-semibold w-full text-left px-4 py-3 rounded-lg transition-all duration-200 shadow-sm hover:scale-[1.03] hover:bg-green-50/60 group-hover:text-green-700 ${activeTab === "dashboard" ? "bg-green-50/80 text-green-700 shadow-md" : "text-black"}`}
                 onClick={() => setActiveTab("dashboard")}
               >
                 <i className={`fas fa-gauge text-lg ${activeTab === "dashboard" ? "text-green-700" : ""} group-hover:text-green-700`}></i>
@@ -418,7 +417,7 @@ export default function Profiles() {
             </li>
             <li className="group">
               <button
-                className={`flex items-center gap-3 font-semibold w-full text-left ${activeTab === "propertyList" ? "text-green-700" : "text-black"} group-hover:text-green-700`}
+                className={`flex items-center gap-3 font-semibold w-full text-left px-4 py-3 rounded-lg transition-all duration-200 shadow-sm hover:scale-[1.03] hover:bg-green-50/60 group-hover:text-green-700 ${activeTab === "propertyList" ? "bg-green-50/80 text-green-700 shadow-md" : "text-black"}`}
                 onClick={() => setActiveTab("propertyList")}
               >
                 <i className={`fas fa-layer-group text-lg ${activeTab === "propertyList" ? "text-green-700" : ""} group-hover:text-green-700`}></i>
@@ -430,7 +429,7 @@ export default function Profiles() {
             {user?.agent === "agent" && (
               <li className="group">
                 <button
-                  className={`flex items-center gap-3 font-semibold w-full text-left ${activeTab === "bookingList" ? "text-green-700" : "text-black"} group-hover:text-green-700`}
+                  className={`flex items-center gap-3 font-semibold w-full text-left px-4 py-3 rounded-lg transition-all duration-200 shadow-sm hover:scale-[1.03] hover:bg-green-50/60 group-hover:text-green-700 ${activeTab === "bookingList" ? "bg-green-50/80 text-green-700 shadow-md" : "text-black"}`}
                   onClick={() => setActiveTab("bookingList")}
                 >
                   <i className={`fas fa-list-alt text-lg ${activeTab === "bookingList" ? "text-green-700" : ""} group-hover:text-green-700`}></i>
@@ -442,7 +441,7 @@ export default function Profiles() {
             {user?.agent !== "agent" && (
               <li className="group">
                 <button
-                  className={`flex items-center gap-3 font-semibold w-full text-left ${activeTab === "bookedAgents" ? "text-green-700" : "text-black"} group-hover:text-green-700`}
+                  className={`flex items-center gap-3 font-semibold w-full text-left px-4 py-3 rounded-lg transition-all duration-200 shadow-sm hover:scale-[1.03] hover:bg-green-50/60 group-hover:text-green-700 ${activeTab === "bookedAgents" ? "bg-green-50/80 text-green-700 shadow-md" : "text-black"}`}
                   onClick={() => setActiveTab("bookedAgents")}
                 >
                   <i className={`fas fa-user-tie text-lg ${activeTab === "bookedAgents" ? "text-green-700" : ""} group-hover:text-green-700`}></i>
@@ -452,7 +451,7 @@ export default function Profiles() {
             )}
             <li className="group">
               <button
-                className={`flex items-center gap-3 font-semibold w-full text-left ${activeTab === "bookedProperty" ? "text-green-700" : "text-black"} group-hover:text-green-700`}
+                className={`flex items-center gap-3 font-semibold w-full text-left px-4 py-3 rounded-lg transition-all duration-200 shadow-sm hover:scale-[1.03] hover:bg-green-50/60 group-hover:text-green-700 ${activeTab === "bookedProperty" ? "bg-green-50/80 text-green-700 shadow-md" : "text-black"}`}
                 onClick={() => setActiveTab("bookedProperty")}
               >
                 <i className={`fas fa-book text-lg ${activeTab === "bookedProperty" ? "text-green-700" : ""} group-hover:text-green-700`}></i>
@@ -461,7 +460,7 @@ export default function Profiles() {
             </li>
             <li className="group">
               <button
-                className={`flex items-center gap-3 font-semibold w-full text-left ${activeTab === "postProperty" ? "text-green-700" : "text-black"} group-hover:text-green-700`}
+                className={`flex items-center gap-3 font-semibold w-full text-left px-4 py-3 rounded-lg transition-all duration-200 shadow-sm hover:scale-[1.03] hover:bg-green-50/60 group-hover:text-green-700 ${activeTab === "postProperty" ? "bg-green-50/80 text-green-700 shadow-md" : "text-black"}`}
                 onClick={() => setActiveTab("postProperty")}
               >
                 <i className={`fas fa-file-alt text-lg ${activeTab === "postProperty" ? "text-green-700" : ""} group-hover:text-green-700`}></i>
@@ -470,7 +469,7 @@ export default function Profiles() {
             </li>
             <li className="group">
               <button
-                className={`flex items-center gap-3 font-semibold w-full text-left ${activeTab === "wallet" ? "text-green-700" : "text-black"} group-hover:text-green-700`}
+                className={`flex items-center gap-3 font-semibold w-full text-left px-4 py-3 rounded-lg transition-all duration-200 shadow-sm hover:scale-[1.03] hover:bg-green-50/60 group-hover:text-green-700 ${activeTab === "wallet" ? "bg-green-50/80 text-green-700 shadow-md" : "text-black"}`}
                 onClick={() => setActiveTab("wallet")}
               >
                 <i className={`fas fa-wallet text-lg ${activeTab === "wallet" ? "text-green-700" : ""} group-hover:text-green-700`}></i>
@@ -479,7 +478,7 @@ export default function Profiles() {
             </li>
             <li className="group">
               <button
-                className={`flex items-center gap-3 font-semibold w-full text-left ${activeTab === "saved" ? "text-green-700" : "text-black"} group-hover:text-green-700`}
+                className={`flex items-center gap-3 font-semibold w-full text-left px-4 py-3 rounded-lg transition-all duration-200 shadow-sm hover:scale-[1.03] hover:bg-green-50/60 group-hover:text-green-700 ${activeTab === "saved" ? "bg-green-50/80 text-green-700 shadow-md" : "text-black"}`}
                 onClick={() => setActiveTab("saved")}
               >
                 <i className={`fas fa-heart text-lg ${activeTab === "saved" ? "text-green-700" : ""} group-hover:text-green-700`}></i>
@@ -489,7 +488,7 @@ export default function Profiles() {
             </li>
             <li className="group">
               <button
-                className={`flex items-center gap-3 font-semibold w-full text-left ${activeTab === "profile" ? "text-green-700" : "text-black"} group-hover:text-green-700`}
+                className={`flex items-center gap-3 font-semibold w-full text-left px-4 py-3 rounded-lg transition-all duration-200 shadow-sm hover:scale-[1.03] hover:bg-green-50/60 group-hover:text-green-700 ${activeTab === "profile" ? "bg-green-50/80 text-green-700 shadow-md" : "text-black"}`}
                 onClick={() => setActiveTab("profile")}
               >
                 <i className={`fas fa-user text-lg ${activeTab === "profile" ? "text-green-700" : ""} group-hover:text-green-700`}></i>
@@ -498,7 +497,7 @@ export default function Profiles() {
             </li>
             <li className="group">
               <button
-                className={`flex items-center gap-3 font-semibold w-full text-left ${activeTab === "becomeAgent" ? "text-green-700" : "text-black"} group-hover:text-green-700`}
+                className={`flex items-center gap-3 font-semibold w-full text-left px-4 py-3 rounded-lg transition-all duration-200 shadow-sm hover:scale-[1.03] hover:bg-green-50/60 group-hover:text-green-700 ${activeTab === "becomeAgent" ? "bg-green-50/80 text-green-700 shadow-md" : "text-black"}`}
                 onClick={() => setActiveTab("becomeAgent")}
               >
                 <i className={`fas fa-user-tie text-lg ${activeTab === "becomeAgent" ? "text-green-700" : ""} group-hover:text-green-700`}></i>
