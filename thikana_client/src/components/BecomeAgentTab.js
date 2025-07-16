@@ -238,8 +238,9 @@ export default function BecomeAgentTab({ user, onUpdate }) {
         <label className="block font-semibold mb-1">Full Address</label>
         <input className="form-input w-full" style={{ border: '1px solid rgb(230, 230, 230)', borderRadius: '8px', padding: '10px' }} name="fullAddress" value={form.fullAddress} onChange={handleChange} required />
       </div>
+      <div className="flex gap-4">
       {/* Distinct Dropdown */}
-      <div>
+      <div className="flex-1">
         <label className="block font-semibold mb-1">Distinct</label>
         <Select
           name="distinct"
@@ -255,7 +256,7 @@ export default function BecomeAgentTab({ user, onUpdate }) {
         />
       </div>
       {/* Thana Dropdown (react-select) */}
-      <div>
+      <div className="flex-1">
         <label className="block font-semibold mb-1">Thana</label>
         <Select
           name="thana"
@@ -267,6 +268,19 @@ export default function BecomeAgentTab({ user, onUpdate }) {
           placeholder="Select or search thana"
           isDisabled={!selectedDistinct}
         />
+      </div>
+      </div>
+      <div className="flex gap-4">
+      {/* Bkash Number */}
+      <div className="flex-1">
+        <label className="block font-semibold mb-1">Bkash Number</label>
+        <input className="form-input w-full" style={{ border: '1px solid rgb(230, 230, 230)', borderRadius: '8px', padding: '10px' }} name="bkash" value={form.bkash} onChange={handleChange} required />
+      </div>
+      {/* Agent Charge */}
+      <div className="flex-1">
+        <label className="block font-semibold mb-1">Set Agent Charge (৳)</label>
+        <input type="number" className="form-input w-full" style={{ border: '1px solid rgb(230, 230, 230)', borderRadius: '8px', padding: '10px' }} name="agentCharge" value={form.agentCharge} onChange={handleChange} required min="0" />
+      </div>
       </div>
       <div className="flex gap-4">
         <div className="flex-1">
