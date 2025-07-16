@@ -5,6 +5,8 @@ import { Carousel } from 'react-responsive-carousel';
 import 'react-responsive-carousel/lib/styles/carousel.min.css';
 import TinySlider from 'tiny-slider-react';
 import 'tiny-slider/dist/tiny-slider.css';
+import { io } from "socket.io-client";
+import moment from "moment";
 
 import Navbar from "../../components/navbar";
 import Footer from "../../components/footer";
@@ -90,6 +92,7 @@ export default function PropertyDetails() {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [open, setIsOpen] = useState(false);
     const [postedUser, setPostedUser] = useState(null);
+    const [postedUserStatus, setPostedUserStatus] = useState(null);
 
     useEffect(() => {
         // Fetch property details from backend by _id
@@ -108,6 +111,24 @@ export default function PropertyDetails() {
         // Prevent scroll to bottom on mount
         window.scrollTo({ top: 0, behavior: 'auto' });
     }, [id]);
+
+    useEffect(() => {
+        if (!postedUser || !postedUser._id) return;
+        const socket = io(apiUrl("/"), { path: "/socket.io", autoConnect: true, reconnection: true });
+        socket.emit("check-user-status", postedUser._id);
+        socket.on("user-status", ({ userId, online, lastSeen }) => {
+            if (userId === postedUser._id) {
+                setPostedUserStatus({ online, lastSeen });
+            }
+        });
+        const interval = setInterval(() => {
+            socket.emit("check-user-status", postedUser._id);
+        }, 30000);
+        return () => {
+            clearInterval(interval);
+            socket.disconnect();
+        };
+    }, [postedUser]);
 
     // Lightbox images: coverImage first, then galleryImages
     const images = [
@@ -344,15 +365,21 @@ export default function PropertyDetails() {
                                                 </span>
                                             </div>
                                         )}
-                                        <div className="w-24 h-24 rounded-full border-4 border-white bg-white flex items-center justify-center overflow-hidden shadow-lg mx-auto" style={{ marginTop: '-48px', zIndex: 10 }}>
+                                        <div className="relative mb-2" style={{ marginTop: '-48px', zIndex: 10 }}>
                                             <img
                                                 src={postedUser.profilePicture ? (postedUser.profilePicture.startsWith('http') || postedUser.profilePicture.startsWith('/uploads/') ? (postedUser.profilePicture.startsWith('http') ? postedUser.profilePicture : apiUrl(postedUser.profilePicture)) : apiUrl(`/uploads/${postedUser.profilePicture}`)) : defaultProfile}
                                                 alt="Profile"
-                                                className="w-full h-full object-cover"
+                                                className={`w-24 h-24 rounded-full object-cover border-4 shadow-lg transition-transform duration-200 ${postedUserStatus && postedUserStatus.online ? 'border-green-500' : 'border-gray-400'}`}
+                                                style={{ boxShadow: postedUserStatus && postedUserStatus.online ? '0 0 0 4px #bbf7d0' : '0 0 0 4px #e5e7eb' }}
                                             />
+                                            <span className={`absolute right-2 bottom-2 w-5 h-5 border-2 border-white rounded-full z-50 animate-pulse ${postedUserStatus && postedUserStatus.online ? 'bg-green-500' : 'bg-gray-400'}`}
+                                                title={postedUserStatus && postedUserStatus.online ? 'Online' : 'Offline'}
+                                            ></span>
+                                            {postedUserStatus && (
+                                                <span className={`absolute left-2 top-2 px-2 py-0.5 rounded-full text-xs font-bold shadow ${postedUserStatus.online ? 'bg-green-100 text-green-700 border border-green-300' : 'bg-gray-200 text-gray-600 border border-gray-300'}`}>{postedUserStatus.online ? 'Online' : 'Offline'}</span>
+                                            )}
                                         </div>
                                         {/* Book Agent button for agent posts, visible to everyone, under profile pic */}
-                                        
                                         <div className="w-full text-center mt-2 flex flex-col items-center gap-2">
                                             <Link to={`/public-profile/${postedUser.username || postedUser._id}`} className="block text-lg font-bold text-gray-800 hover:text-green-700 transition">
                                                 {postedUser.name || postedUser.username || 'User'}
@@ -362,8 +389,19 @@ export default function PropertyDetails() {
                                               <>
                                                 <AgentRatingSummary agentId={postedUser._id} />
                                                 <AgentReviews agentId={postedUser._id} />
-                                                
                                               </>
+                                            )}
+                                            {/* Active status text below name */}
+                                            {postedUserStatus && (
+                                                <div className="text-xs text-gray-500 mt-1">
+                                                    {postedUserStatus.online ? (
+                                                        <span className="text-green-600 font-semibold">Active now</span>
+                                                    ) : postedUserStatus.lastSeen ? (
+                                                        <span>Last seen {moment(postedUserStatus.lastSeen).fromNow()}</span>
+                                                    ) : (
+                                                        <span>Offline</span>
+                                                    )}
+                                                </div>
                                             )}
                                         </div>
                                         {postedUser.agent === "agent" && (

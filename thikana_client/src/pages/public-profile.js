@@ -108,58 +108,68 @@ export default function PublicProfile() {
               alt="Cover"
               className="w-full h-56 object-cover rounded-3xl"
             />
-            {/* Agent Charge badge (top right) */}
-            {user.agent === "agent" && user.agentCharge && (
-              <div style={{position: 'absolute', top: 20, right: 20, zIndex: 20}}>
-                <span className="bg-green-600 text-white px-4 py-2 rounded-full shadow font-semibold text-sm">
-                  Agent Charge: ৳{user.agentCharge}
-                </span>
+            <div className="absolute left-8 bottom-[-64px] flex items-center gap-6">
+              <div className="relative mb-2">
+                <img
+                  src={user?.profilePicture ? (user.profilePicture.startsWith("http") ? user.profilePicture : apiUrl(user.profilePicture)) : defaultProfile}
+                  alt={user?.name}
+                  className={`w-32 h-32 rounded-full object-cover border-4 shadow-lg transition-transform duration-200 ${isOnline ? 'border-green-500' : 'border-gray-400'}`}
+                  style={{ boxShadow: isOnline ? '0 0 0 4px #bbf7d0' : '0 0 0 4px #e5e7eb' }}
+                />
+                <span className={`absolute right-2 bottom-2 w-6 h-6 border-2 border-white rounded-full z-50 animate-pulse ${isOnline ? 'bg-green-500' : 'bg-gray-400'}`}
+                  title={isOnline ? 'Online' : 'Offline'}
+                ></span>
+                <span className={`absolute left-2 top-2 px-2 py-0.5 rounded-full text-xs font-bold shadow ${isOnline ? 'bg-green-100 text-green-700 border border-green-300' : 'bg-gray-200 text-gray-600 border border-gray-300'}`}>{isOnline ? 'Online' : 'Offline'}</span>
               </div>
-            )}
-            {/* Avatar and name on left, Message button and Book Now (if agent) on right */}
-            <div className="absolute left-8 bottom-[-58px] flex items-center gap-4">
-              <div className="w-24 h-24 rounded-full border-4 border-white bg-white flex items-center justify-center overflow-hidden shadow-lg">
-                <div className="relative inline-block">
-                  <img
-                    src={user?.profilePicture ? (user.profilePicture.startsWith("http") ? user.profilePicture : apiUrl(user.profilePicture)) : defaultProfile}
-                    alt={user?.name}
-                    className="w-32 h-32 rounded-full object-cover border-4 border-green-500 shadow"
-                  />
-                  {isOnline ? (
-                    <span className="absolute right-2 bottom-2 w-5 h-5 bg-green-500 border-2 border-white rounded-full z-50"></span>
-                  ) : (
-                    <span className="absolute right-2 bottom-2 w-5 h-5 bg-gray-400 border-2 border-white rounded-full z-50"></span>
+              <div className="flex flex-col gap-2 bg-white/80 apple-blur rounded-xl shadow-lg px-6 py-4 min-w-[220px]">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xl font-bold text-white">{user.name || "User Name"}</span>
+                  {user.agent === "agent" && (
+                    <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded font-semibold ml-1">Agent</span>
                   )}
                 </div>
-              </div>
-              <div className="ml-2 flex items-center gap-3">
-                <h3 className="text-xl mt-5 font-bold text-gray-800">{user.name || "User Name"}</h3>
-                {/* Agent rating display */}
+                <div className="flex items-center gap-2">
+                  {isOnline ? (
+                    <span className="text-green-400 text-base font-semibold flex items-center gap-1"><span className="animate-pulse">●</span> Active now</span>
+                  ) : lastSeen ? (
+                    <span className="text-white text-base flex items-center gap-1"><span>●</span> Last seen {moment(lastSeen).fromNow()}</span>
+                  ) : (
+                    <span className="text-white text-base flex items-center gap-1"><span>●</span> Offline</span>
+                  )}
+                </div>
                 {user.agent === "agent" && avgRating > 0 && ratingCount > 0 && (
-                  <div className="flex items-center mt-5">
-                    <span className="text-yellow-400 text-2xl mr-1">★</span>
-                    <span className="font-bold text-lg text-gray-800">{avgRating.toFixed(1)}</span>
-                    <span className="ml-2 text-gray-600 text-sm">({ratingCount} rating{ratingCount > 1 ? 's' : ''})</span>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-yellow-400 text-2xl">★</span>
+                    <span className="font-bold text-lg text-white">{avgRating.toFixed(1)}</span>
+                    <span className="text-white text-sm">({ratingCount} rating{ratingCount > 1 ? 's' : ''})</span>
                   </div>
                 )}
               </div>
             </div>
             <div className="absolute right-8 top-[250px] flex gap-4">
               <button
-                className="bg-green-600 text-white px-6 py-2 rounded-full font-semibold shadow hover:bg-green-700 transition"
+                className="bg-green-600 text-white px-8 py-3 rounded-full font-semibold shadow hover:bg-green-700 transition text-lg"
                 onClick={() => navigate(`/messages/${user._id}`)}
               >
                 Message
               </button>
               {user.agent === "agent" && (
                 <button
-                  className="bg-green-600 text-white px-6 py-2 rounded-full font-semibold shadow hover:bg-green-700 transition"
+                  className="bg-green-600  text-white px-8 py-3 rounded-full font-semibold shadow hover:bg-green-700 transition text-lg"
                   onClick={() => { /* Book Now action here */ }}
                 >
                   Book Now
                 </button>
               )}
             </div>
+            {/* Agent Charge badge (top right) */}
+            {user.agent === "agent" && user.agentCharge && (
+              <div style={{position: 'absolute', top: 32, right: 32, zIndex: 20}}>
+                <span className="bg-green-600 text-white apple-blur px-5 py-2 rounded-full shadow-lg font-bold text-base">
+                  Agent Charge: ৳{user.agentCharge}
+                </span>
+              </div>
+            )}
           </div>
         </div>
         {/* Property Items */}

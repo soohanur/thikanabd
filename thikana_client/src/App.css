@@ -80,3 +80,8 @@ ul.space-y-2.divide-y.divide-gray-100 {
 ul.flex-1.overflow-y-auto.divide-y.divide-gray-100 {
   padding: 0;
 }
+
+.apple-blur {
+  background: #0d361d79;
+  backdrop-filter: blur(5px);
+}

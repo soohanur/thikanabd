@@ -78,9 +78,12 @@ export default function ProfileTab({ user, onUpdate }) {
     setError("");
     try {
       const formData = new FormData();
-      Object.entries(form).forEach(([k, v]) => {
-        if (v) formData.append(k, v);
-      });
+      formData.append("name", form.name);
+      formData.append("email", form.email);
+      formData.append("phone", form.phone);
+      formData.append("address", form.address);
+      if (form.profilePicture instanceof File) formData.append("profilePicture", form.profilePicture);
+      if (form.coverPicture instanceof File) formData.append("coverPicture", form.coverPicture);
       const token = localStorage.getItem("thikana_token");
       await axios.post(apiUrl("/api/user/profile"), formData, {
         headers: { Authorization: `Bearer ${token}` },

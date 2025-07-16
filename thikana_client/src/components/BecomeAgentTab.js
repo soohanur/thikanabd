@@ -146,19 +146,17 @@ export default function BecomeAgentTab({ user, onUpdate }) {
     setError("");
     try {
       const formData = new FormData();
-      // Require profile and cover picture if not set
-      if (!profilePreview) throw new Error("Profile picture is required");
-      if (!coverPreview) throw new Error("Cover picture is required");
+      // Always use the actual File object for upload, not preview URL
       formData.append("fullAddress", form.fullAddress);
       formData.append("distinct", form.distinct);
       formData.append("thana", form.thana);
       formData.append("zip", form.zip);
       formData.append("bkash", form.bkash);
       formData.append("agentCharge", form.agentCharge);
-      if (form.nidFront) formData.append("nidFront", form.nidFront);
-      if (form.nidBack) formData.append("nidBack", form.nidBack);
-      if (form.profilePicture) formData.append("profilePicture", form.profilePicture);
-      if (form.coverPicture) formData.append("coverPicture", form.coverPicture);
+      if (form.nidFront instanceof File) formData.append("nidFront", form.nidFront);
+      if (form.nidBack instanceof File) formData.append("nidBack", form.nidBack);
+      if (form.profilePicture instanceof File) formData.append("profilePicture", form.profilePicture);
+      if (form.coverPicture instanceof File) formData.append("coverPicture", form.coverPicture);
       formData.append("agent", "agent");
       const token = localStorage.getItem("thikana_token");
       await axios.post(apiUrl("/api/user/profile"), formData, {

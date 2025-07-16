@@ -3,10 +3,13 @@ import coverImg from "../assect/images/profile-cover.png";
 import defaultProfile from "../assect/images/profile-thumb.png";
 import { Link } from "react-router-dom";
 import { apiUrl } from "../utils/api";
+import { io } from "socket.io-client";
+import moment from "moment";
 
 export default function DashboardTab({ user, properties }) {
   const [avgRating, setAvgRating] = useState(null);
   const [ratingCount, setRatingCount] = useState(null);
+  const [status, setStatus] = useState(null);
 
   useEffect(() => {
     async function fetchAgentRatings() {
@@ -23,6 +26,24 @@ export default function DashboardTab({ user, properties }) {
     fetchAgentRatings();
   }, [user?._id]);
 
+  useEffect(() => {
+    if (!user?._id) return;
+    const socket = io(apiUrl("/"), { path: "/socket.io", autoConnect: true, reconnection: true });
+    socket.emit("check-user-status", user._id);
+    socket.on("user-status", ({ userId, online, lastSeen }) => {
+      if (userId === user._id) {
+        setStatus({ online, lastSeen });
+      }
+    });
+    const interval = setInterval(() => {
+      socket.emit("check-user-status", user._id);
+    }, 30000);
+    return () => {
+      clearInterval(interval);
+      socket.disconnect();
+    };
+  }, [user?._id]);
+
   return (
     <>
       <div className="w-full mb-8 relative">
@@ -35,12 +56,19 @@ export default function DashboardTab({ user, properties }) {
           {/* Avatar and name on left, buttons on right */}
           <div className="absolute left-8 bottom-[-58px] flex items-center gap-4 w-[calc(100%-4rem)] justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-24 h-24 rounded-full border-4 border-white bg-white flex items-center justify-center overflow-hidden shadow-lg">
+              <div className="relative mb-2">
                 <img
                   src={user?.profilePicture ? (user.profilePicture.startsWith('http') ? user.profilePicture : apiUrl(user.profilePicture)) : defaultProfile}
-                  alt="Profile"
-                  className="w-full h-full object-cover"
+                  alt={user?.name}
+                  className={`w-24 h-24 rounded-full object-cover border-4 shadow-lg transition-transform duration-200 ${status && status.online ? 'border-green-500' : 'border-gray-400'}`}
+                  style={{ boxShadow: status && status.online ? '0 0 0 4px #bbf7d0' : '0 0 0 4px #e5e7eb' }}
                 />
+                <span className={`absolute right-2 bottom-2 w-5 h-5 border-2 border-white rounded-full z-50 animate-pulse ${status && status.online ? 'bg-green-500' : 'bg-gray-400'}`}
+                  title={status && status.online ? 'Online' : 'Offline'}
+                ></span>
+                {status && (
+                  <span className={`absolute left-2 top-2 px-2 py-0.5 rounded-full text-xs font-bold shadow ${status.online ? 'bg-green-100 text-green-700 border border-green-300' : 'bg-gray-200 text-gray-600 border border-gray-300'}`}>{status.online ? 'Online' : 'Offline'}</span>
+                )}
               </div>
               <div className="ml-2">
                 <h3 className="text-xl mt-5 font-bold text-gray-800">{user?.name || "User Name"}</h3>
