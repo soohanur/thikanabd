@@ -6,12 +6,23 @@ const multer = require('multer');
 const path = require('path');
 const SSLCommerzPayment = require('sslcommerz-lts');
 require('dotenv').config();
+const http = require('http');
+const { Server } = require('socket.io');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 const JWT_SECRET = 'your_secret_key'; // Use a strong secret in production
 const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
 const SERVER_URL = process.env.SERVER_URL || "http://localhost:5000";
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: CLIENT_URL,
+    methods: ["GET", "POST"]
+  }
+});
+
+let onlineUsers = {};
 
 // Middleware
 app.use(cors());
@@ -47,7 +58,7 @@ async function startServer() {
         agentRatingsCollection = database.collection("agent_ratings");
 
         // Start Express server after DB connection
-        app.listen(PORT, () => {
+        server.listen(PORT, () => {
             console.log(`Server running on port ${PORT}`);
         });
     } catch (err) {
@@ -57,6 +68,23 @@ async function startServer() {
 }
 
 startServer();
+
+// Socket.io connection
+io.on('connection', (socket) => {
+  socket.on('user-online', (userId) => {
+    onlineUsers[userId] = socket.id;
+    io.emit('online-users', Object.keys(onlineUsers));
+  });
+  socket.on('disconnect', () => {
+    for (const [uid, sid] of Object.entries(onlineUsers)) {
+      if (sid === socket.id) {
+        delete onlineUsers[uid];
+        break;
+      }
+    }
+    io.emit('online-users', Object.keys(onlineUsers));
+  });
+});
 
 // Middleware to verify JWT and get user
 function authenticateToken(req, res, next) {
@@ -335,6 +363,7 @@ app.post('/api/user/profile', authenticateToken, upload.fields([
     if (req.body.phone) updateData.phone = req.body.phone;
     if (req.body.address) updateData.address = req.body.address;
     if (req.body.fullAddress) updateData.fullAddress = req.body.fullAddress;
+    if (req.body.distinct) updateData.distinct = req.body.distinct;
     if (req.body.thana) updateData.thana = req.body.thana;
     if (req.body.zip) updateData.zip = req.body.zip;
     if (req.body.bkash) updateData.bkash = req.body.bkash;
