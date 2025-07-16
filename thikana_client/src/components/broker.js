@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { apiUrl } from "../utils/api";
+import { apiUrl, API_BASE_URL } from "../utils/api";
 import { Link, useNavigate } from "react-router-dom";
+import { io } from "socket.io-client";
+import moment from "moment";
 
-function AgentCard({ agent }) {
+function AgentCard({ agent, status, onBook }) {
     const navigate = useNavigate();
     const [avgRating, setAvgRating] = useState(null);
     const [ratingCount, setRatingCount] = useState(null);
@@ -25,34 +27,54 @@ function AgentCard({ agent }) {
     }, [agent._id]);
 
     return (
-        <div
-            className="bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-shadow border border-gray-100 p-7 w-full max-w-sm flex flex-col items-center cursor-pointer group relative"
-        >
+        <div className="bg-gradient-to-br from-green-50 to-white rounded-3xl shadow-xl hover:shadow-2xl hover:scale-[1.03] transition-all border border-gray-100 p-7 w-full max-w-sm flex flex-col items-center cursor-pointer group relative overflow-hidden">
             <div className="flex flex-col items-center w-full">
-                <img
-                    src={agent.profilePicture ? (agent.profilePicture.startsWith('http') ? agent.profilePicture : apiUrl(agent.profilePicture)) : process.env.PUBLIC_URL + '/default-profile.png'}
-                    alt={agent.name}
-                    className="w-24 h-24 rounded-full object-cover border-4 border-green-500 shadow mb-4 group-hover:scale-105 transition-transform duration-200"
-                />
-                <span className="text-xl font-bold text-gray-900 mb-1 tracking-tight">{agent.name || agent.username}</span>
+                <div className="relative mb-2">
+                    <img
+                        src={agent.profilePicture ? (agent.profilePicture.startsWith('http') ? agent.profilePicture : apiUrl(agent.profilePicture)) : process.env.PUBLIC_URL + '/default-profile.png'}
+                        alt={agent.name}
+                        className={`w-24 h-24 rounded-full object-cover border-4 shadow-lg group-hover:scale-110 transition-transform duration-200 ${status && status.online ? 'border-green-500' : 'border-gray-400'}`}
+                        style={{ boxShadow: status && status.online ? '0 0 0 4px #bbf7d0' : '0 0 0 4px #e5e7eb' }}
+                    />
+                    <span className={`absolute right-2 bottom-2 w-5 h-5 border-2 border-white rounded-full z-50 animate-pulse ${status && status.online ? 'bg-green-500' : 'bg-gray-400'}`}
+                        title={status && status.online ? 'Online' : 'Offline'}
+                    ></span>
+                    {status && (
+                        <span className={`absolute left-2 top-2 px-2 py-0.5 rounded-full text-xs font-bold shadow ${status.online ? 'bg-green-100 text-green-700 border border-green-300' : 'bg-gray-200 text-gray-600 border border-gray-300'}`}>{status.online ? 'Online' : 'Offline'}</span>
+                    )}
+                </div>
+                <span className="text-xl font-extrabold text-gray-900 mb-1 tracking-tight text-center w-full truncate">{agent.name || agent.username}</span>
+                {status && (
+                    <div className="text-xs text-gray-500 mb-1 text-center w-full">
+                        {status.online ? (
+                            <span className="text-green-600 font-semibold">Active now</span>
+                        ) : status.lastSeen ? (
+                            <span>Last seen {moment(status.lastSeen).fromNow()}</span>
+                        ) : (
+                            <span>Offline</span>
+                        )}
+                    </div>
+                )}
                 <div className="flex items-center justify-center gap-2 mb-2">
-                    <span className="text-yellow-500 text-lg">★</span>
-                    <span className="font-semibold text-gray-800 text-base">{avgRating}</span>
-                    <span className="text-gray-500 text-sm">({ratingCount} reviews)</span>
+                    <span className="text-yellow-400 text-lg drop-shadow">★</span>
+                    <span className="font-bold text-gray-800 text-base">{avgRating}</span>
+                    <span className="text-gray-500 text-xs">({ratingCount} reviews)</span>
                 </div>
                 <div className="w-full text-center mb-2">
-                    <span className="block text-sm text-gray-600 font-medium">{agent.address || agent.fullAddress || "No address"}</span>
-                    <span className="block text-sm text-gray-500">Thana: {agent.thana || "N/A"}</span>
+                    <span className="block text-sm text-gray-600 font-medium truncate">{agent.address || agent.fullAddress || "No address"}</span>
+                    <span className="block text-xs text-gray-500">Thana: {agent.thana || "N/A"}</span>
                 </div>
                 {agent.agentCharge && (
-                    <div className="w-full text-green-700 font-bold text-base mb-4 text-center bg-green-50 rounded-lg py-2">৳ {agent.agentCharge} <span className="text-xs font-normal text-gray-600">/ service</span></div>
+                    <div className="w-full text-green-700 font-bold text-base mb-4 text-center bg-green-50 rounded-lg py-2 shadow-inner">৳ {agent.agentCharge} <span className="text-xs font-normal text-gray-600">/ service</span></div>
                 )}
             </div>
             <button
                 className="bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 text-white font-semibold py-3 px-4 rounded-full shadow w-full mt-auto transition-all duration-200 text-lg tracking-wide"
-                onClick={() => window.open(`http://localhost:3000/book-agent/${agent._id}`, '_blank')}
+                onClick={onBook}
             >
-                Book Now
+                <span className="inline-flex items-center gap-2">
+                     Book Now
+                </span>
             </button>
         </div>
     );
@@ -62,6 +84,7 @@ export default function Broker() {
     const [agents, setAgents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [agentStatuses, setAgentStatuses] = useState({});
 
     useEffect(() => {
         async function fetchAgents() {
@@ -82,6 +105,34 @@ export default function Broker() {
         fetchAgents();
     }, []);
 
+    useEffect(() => {
+        if (!agents.length) return;
+        const socket = io(API_BASE_URL, { autoConnect: true, reconnection: true });
+        const agentIds = agents.map(a => a._id);
+        socket.emit("check-multiple-user-status", agentIds);
+        socket.on("multiple-user-status", (statuses) => {
+            setAgentStatuses(statuses || {});
+        });
+        const interval = setInterval(() => {
+            socket.emit("check-multiple-user-status", agentIds);
+        }, 30000);
+        return () => {
+            clearInterval(interval);
+            socket.disconnect();
+        };
+    }, [agents]);
+
+    // Show only 9 latest agents, sorted by createdAt (descending)
+    const sortedAgents = [...agents]
+        .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+        .slice(0, 9);
+    // Split into 3 rows, 3 agents per row
+    const rows = [
+        sortedAgents.slice(0, 3),
+        sortedAgents.slice(3, 6),
+        sortedAgents.slice(6, 9)
+    ];
+
     return (
         <React.Fragment>
             <div className="row justify-content-center">
@@ -98,21 +149,30 @@ export default function Broker() {
             ) : error ? (
                 <div className="text-center text-red-500 py-8 text-lg">{error}</div>
             ) : (
-                <div className="flex flex-wrap gap-6 justify-center mt-0">
-                    {agents.length === 0 ? (
-                        <div className="w-full text-center text-gray-500 py-8 text-lg">No agents found.</div>
-                    ) : (
-                        agents.map((agent, index) => (
-                            <div
-                                className="w-full sm:w-2/3 md:w-1/2 lg:w-1/3 xl:w-1/4 flex justify-center mb-6"
-                                key={agent._id || index}
-                            >
-                                
-                                    <AgentCard agent={agent} />
-                                
+                <div className="container mx-auto px-4 py-8">
+                    <div className="flex flex-col gap-12 w-full">
+                        {rows.map((row, rowIdx) => (
+                            <div key={rowIdx} className="flex flex-row gap-8 w-full justify-center">
+                                {row.map((agent, index) => (
+                                    <div key={agent._id || index} className="flex-1 min-w-0 max-w-sm flex justify-center">
+                                        <Link
+                                            to={`/public-profile/${agent.username || agent._id}`}
+                                            className="block w-full h-full"
+                                        >
+                                            <AgentCard
+                                                agent={agent}
+                                                status={agentStatuses[agent._id]}
+                                                onBook={e => {
+                                                    e.stopPropagation();
+                                                    window.open(`/book-agent/${agent._id}`, '_blank');
+                                                }}
+                                            />
+                                        </Link>
+                                    </div>
+                                ))}
                             </div>
-                        ))
-                    )}
+                        ))}
+                    </div>
                 </div>
             )}
         </React.Fragment>

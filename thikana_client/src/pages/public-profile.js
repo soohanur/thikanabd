@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import axios from "axios";
-import { apiUrl } from "../utils/api";
+import { apiUrl, API_BASE_URL } from "../utils/api";
 import coverImg from "../assect/images/profile-cover.png";
 import defaultProfile from "../assect/images/profile-thumb.png";
 import Navbar from "../components/navbar";
 import Footer from "../components/footer";
-import { useOnlineStatusContext } from "../utils/OnlineStatusContext";
+import { io } from "socket.io-client";
 import moment from "moment";
 
 export default function PublicProfile() {
@@ -17,7 +17,49 @@ export default function PublicProfile() {
   const [loading, setLoading] = useState(true);
   const [avgRating, setAvgRating] = useState(null);
   const [ratingCount, setRatingCount] = useState(null);
-  const { onlineUsers } = useOnlineStatusContext();
+  const [isOnline, setIsOnline] = useState(false);
+  const [lastSeen, setLastSeen] = useState(null);
+
+  useEffect(() => {
+    let socket;
+    let userId = null;
+    async function fetchUserAndStatus() {
+      try {
+        const res = await axios.get(apiUrl(`/api/users/${username}`));
+        setUser(res.data.user);
+        setProperties(res.data.properties || []);
+        setLoading(false);
+        userId = res.data.user?._id;
+        if (userId) {
+          // Connect to socket.io for real-time status
+          socket = io(API_BASE_URL, { autoConnect: true, reconnection: true });
+          socket.emit("check-user-status", userId);
+          socket.on("user-status", ({ userId: id, online, lastSeen }) => {
+            if (id === userId) {
+              setIsOnline(!!online);
+              setLastSeen(lastSeen);
+            }
+          });
+          // Optionally, request status again every 30s
+          const interval = setInterval(() => {
+            socket.emit("check-user-status", userId);
+          }, 30000);
+          return () => {
+            clearInterval(interval);
+            socket.disconnect();
+          };
+        }
+      } catch (err) {
+        setLoading(false);
+        setUser(null);
+      }
+    }
+    const cleanup = fetchUserAndStatus();
+    return () => {
+      if (typeof cleanup === 'function') cleanup();
+      if (socket) socket.disconnect();
+    };
+  }, [username]);
 
   useEffect(() => {
     async function fetchData() {
@@ -83,7 +125,7 @@ export default function PublicProfile() {
                     alt={user?.name}
                     className="w-32 h-32 rounded-full object-cover border-4 border-green-500 shadow"
                   />
-                  {user && user._id && onlineUsers.includes(String(user._id)) ? (
+                  {isOnline ? (
                     <span className="absolute right-2 bottom-2 w-5 h-5 bg-green-500 border-2 border-white rounded-full z-50"></span>
                   ) : (
                     <span className="absolute right-2 bottom-2 w-5 h-5 bg-gray-400 border-2 border-white rounded-full z-50"></span>

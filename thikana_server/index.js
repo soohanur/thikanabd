@@ -98,6 +98,29 @@ io.on('connection', (socket) => {
     }
     io.emit('online-users', Object.keys(onlineUsers));
   });
+  socket.on('check-user-status', async (userId) => {
+    let online = !!onlineUsers[userId];
+    let lastSeen = null;
+    if (usersCollection && userId) {
+      const user = await usersCollection.findOne({ _id: new ObjectId(userId) }, { projection: { lastSeen: 1 } });
+      lastSeen = user?.lastSeen || null;
+    }
+    socket.emit('user-status', { userId, online, lastSeen });
+  });
+  socket.on('check-multiple-user-status', async (userIds) => {
+    if (!Array.isArray(userIds)) return;
+    const statuses = {};
+    for (const userId of userIds) {
+      let online = !!onlineUsers[userId];
+      let lastSeen = null;
+      if (usersCollection && userId) {
+        const user = await usersCollection.findOne({ _id: new ObjectId(userId) }, { projection: { lastSeen: 1 } });
+        lastSeen = user?.lastSeen || null;
+      }
+      statuses[userId] = { online, lastSeen };
+    }
+    socket.emit('multiple-user-status', statuses);
+  });
 });
 
 // Middleware to verify JWT and get user
