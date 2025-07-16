@@ -4,7 +4,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 export default function PaymentFail() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const bookingId = searchParams.get("bookingId");
+  const bookingId = searchParams.get("bookingId") || searchParams.get("tran_id");
   return (
     <div className="w-full min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-white px-[15px]">
       <div className="w-full max-w-xl bg-white rounded-2xl shadow-lg p-10 text-center border border-red-100">
@@ -34,6 +34,10 @@ export default function PaymentFail() {
           <h2 className="text-2xl font-bold mb-2 text-red-700">
             Payment Failed
           </h2>
+        </div>
+        <div className="mb-4 text-lg text-gray-700">
+          Your payment for property booking{" "}
+          <span className="font-bold">{bookingId}</span> failed.
         </div>
         <div className="mb-4 text-gray-600">
           Please try again or contact support if the issue persists.

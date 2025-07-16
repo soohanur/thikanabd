@@ -21,15 +21,28 @@ export default function WalletTab({ user }) {
       setError("");
       try {
         const token = localStorage.getItem("thikana_token");
-        // Get all paid bookings for this agent
-        const res = await axios.get(apiUrl("/api/bookings/agent"), {
+        // Get all paid agent bookings for this agent
+        const agentRes = await axios.get(apiUrl("/api/bookings/agent"), {
           headers: { Authorization: `Bearer ${token}` },
         });
-        const paidBookings = res.data.filter(b => b.payment === "paid" && b.agentCharge);
-        setTransactions(paidBookings);
-        // Calculate wallet balance (sum of 75% of agentCharge for all paid bookings)
-        const total = paidBookings.reduce((sum, b) => sum + (b.agentCharge * 0.75), 0);
-        setBalance(user?.walletBalance ?? total); // Prefer DB walletBalance if available
+        const agentTx = agentRes.data.filter(b => b.payment === "paid" && b.agentCharge);
+        // Get all property sale/rent transactions for this owner
+        const ownerRes = await axios.get(apiUrl("/api/bookings/agent"), {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const propertyTx = ownerRes.data.filter(b => b.status === "paid" && b.propertyId && b.ownerId === user?._id && b.price);
+        // Calculate wallet balance for property sales/rent
+        let propertyBalance = 0;
+        propertyTx.forEach(tx => {
+          let platformCharge = 0;
+          if (tx.type && tx.type.toLowerCase() === "buy") platformCharge = 5000;
+          else if (tx.type && tx.type.toLowerCase() === "rent") platformCharge = Math.round((parseFloat(tx.price) || 0) * 0.10);
+          propertyBalance += (parseFloat(tx.price) || 0);
+        });
+        // Calculate wallet balance for agent bookings
+        const agentBalance = agentTx.reduce((sum, b) => sum + (b.agentCharge * 0.75), 0);
+        setTransactions([...propertyTx, ...agentTx]);
+        setBalance(user?.walletBalance ?? (propertyBalance + agentBalance));
       } catch (err) {
         setError("Failed to load wallet data.");
       } finally {
@@ -130,12 +143,28 @@ export default function WalletTab({ user }) {
                 <div>
                   <div className="font-bold">{tx.userName || "User"}</div>
                   <div className="text-xs text-gray-500">Paid by</div>
+                  {tx.title && <div className="text-xs text-gray-700">Property: {tx.title}</div>}
                 </div>
               </div>
               <div className="text-right">
-                <div className="font-bold text-green-700">৳{(tx.agentCharge * 0.75).toFixed(2)}</div>
+                {tx.agentCharge ? (
+                  <>
+                    <div className="font-bold text-green-700">৳{(tx.agentCharge * 0.75).toFixed(2)}</div>
+                    <div className="text-xs text-orange-500">Platform Charge: ৳{(tx.agentCharge * 0.25).toFixed(2)}</div>
+                  </>
+                ) : (
+                  <>
+                    <div className="font-bold text-green-700">৳{tx.price}</div>
+                    <div className="text-xs text-orange-500">
+                      Platform Charge: ৳{tx.type && tx.type.toLowerCase() === "buy"
+                        ? 5000
+                        : tx.type && tx.type.toLowerCase() === "rent"
+                          ? Math.round((parseFloat(tx.price) || 0) * 0.10)
+                          : 0}
+                    </div>
+                  </>
+                )}
                 <div className="text-xs text-gray-500">{new Date(tx.createdAt).toLocaleString()}</div>
-                <div className="text-xs text-orange-500">Platform Charge: ৳{(tx.agentCharge * 0.25).toFixed(2)}</div>
               </div>
             </div>
           ))}

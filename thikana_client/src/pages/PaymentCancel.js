@@ -4,7 +4,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 export default function PaymentCancel() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const bookingId = searchParams.get("bookingId");
+  const bookingId = searchParams.get("bookingId") || searchParams.get("tran_id");
   return (
     <div className="w-full min-h-screen flex items-center justify-center bg-gradient-to-br from-yellow-50 to-white px-[15px]">
       <div className="w-full max-w-xl bg-white rounded-2xl shadow-lg p-10 text-center border border-yellow-100">
@@ -17,7 +17,7 @@ export default function PaymentCancel() {
           </div>
           <h2 className="text-2xl font-bold mb-2 text-yellow-700">Payment Cancelled</h2>
         </div>
-        <div className="mb-4 text-lg text-gray-700">Your payment for booking <span className="font-bold">{bookingId}</span> was cancelled.</div>
+        <div className="mb-4 text-lg text-gray-700">Your payment for property booking <span className="font-bold">{bookingId}</span> was cancelled.</div>
         <div className="mb-4 text-gray-600">You can retry payment from your dashboard if you wish to complete the booking.</div>
         <button
           className="mt-6 bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded-full font-bold text-lg shadow transition"

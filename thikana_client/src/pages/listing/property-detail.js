@@ -451,9 +451,9 @@ export default function PropertyDetails() {
                                           onClick={() => {
                                             const token = localStorage.getItem('thikana_token');
                                             if (!token) {
-                                              navigate(`/auth-login?redirect=/booking/${postedUser._id}`);
+                                              navigate(`/auth-login?redirect=/buy/${data._id}`);
                                             } else {
-                                              navigate(`/booking/${postedUser._id}`);
+                                              navigate(`/buy/${data._id}`);
                                             }
                                           }}
                                         >

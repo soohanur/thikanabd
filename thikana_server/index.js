@@ -34,6 +34,7 @@ let usersCollection;
 let propertiesCollection;
 let messagesCollection;
 let bookingsCollection;
+let propertyBookingsCollection;
 const payoutsCollectionName = "payouts";
 let payoutsCollection;
 let agentRatingsCollection;
@@ -54,6 +55,7 @@ async function startServer() {
         propertiesCollection = database.collection("properties");
         messagesCollection = database.collection("messages");
         bookingsCollection = database.collection("bookings");
+        propertyBookingsCollection = database.collection("property_bookings");
         payoutsCollection = database.collection(payoutsCollectionName);
         agentRatingsCollection = database.collection("agent_ratings");
 
@@ -127,11 +129,9 @@ io.on('connection', (socket) => {
 function authenticateToken(req, res, next) {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
-    console.log('Token received:', token); // Debug log
     if (!token) return res.status(401).json({ message: 'No token provided' });
     jwt.verify(token, JWT_SECRET, (err, user) => {
         if (err) {
-            console.log('JWT error:', err); // Debug log
             return res.status(403).json({ message: 'Invalid token', error: err });
         }
         req.user = user;
@@ -1034,6 +1034,12 @@ app.post('/api/payment/success-buy', async (req, res) => {
     const userId = req.body.userId || req.query.userId;
     const tran_id = req.body.tran_id || req.query.tran_id;
     if (tran_id) {
+      // Update property_bookings collection status to paid
+      await propertyBookingsCollection.updateOne(
+        { _id: new ObjectId(tran_id) },
+        { $set: { status: 'paid', paidAt: new Date() } }
+      );
+      // Also update bookingsCollection if needed (legacy)
       const transaction = await bookingsCollection.findOne({ _id: new ObjectId(tran_id) });
       if (transaction && transaction.status === 'pending') {
         await bookingsCollection.updateOne(
@@ -1049,7 +1055,7 @@ app.post('/api/payment/success-buy', async (req, res) => {
         }
       }
     }
-    res.redirect(`${CLIENT_URL}/payment-success`);
+    res.redirect(`${CLIENT_URL}/payment-success?bookingId=${tran_id}`);
   } catch (error) {
     res.status(500).send('Error updating property payment status');
   }
@@ -1072,5 +1078,90 @@ app.post('/api/payment/cancel-buy', async (req, res) => {
     res.redirect(`${CLIENT_URL}/payment-cancel?tran_id=${tran_id}`);
   } catch (error) {
     res.status(500).send('Error handling property payment cancel');
+  }
+});
+
+// --- Property Booking API ---
+// POST /api/property-bookings - Save property booking info (with file upload)
+app.post('/api/property-bookings', authenticateToken, upload.fields([
+  { name: 'nidFront', maxCount: 1 },
+  { name: 'nidBack', maxCount: 1 }
+]), async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const {
+      permanentAddress,
+      district,
+      thana,
+      profession,
+      university,
+      institution,
+      phone,
+      propertyId
+    } = req.body;
+    if (!propertyId || !phone || !permanentAddress || !district || !thana || !profession) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+    // Get property and owner
+    const property = await propertiesCollection.findOne({ _id: new ObjectId(propertyId) });
+    if (!property) return res.status(404).json({ message: 'Property not found' });
+    const ownerId = property.userId;
+    // Save booking info
+    const booking = {
+      userId,
+      propertyId,
+      ownerId,
+      permanentAddress,
+      district,
+      thana,
+      profession,
+      university: profession === 'Student' ? university : '',
+      institution: profession === 'Doing Job' ? institution : '',
+      phone,
+      nidFront: req.files['nidFront'] ? `/uploads/${req.files['nidFront'][0].filename}` : '',
+      nidBack: req.files['nidBack'] ? `/uploads/${req.files['nidBack'][0].filename}` : '',
+      status: 'pending',
+      createdAt: new Date(),
+    };
+    const result = await propertyBookingsCollection.insertOne(booking);
+    res.status(201).json({ message: 'Property booking saved', bookingId: result.insertedId });
+  } catch (error) {
+    res.status(500).json({ message: 'Error saving property booking', error });
+  }
+});
+// GET /api/property-bookings/user - Get all property bookings made by the current user
+app.get('/api/property-bookings/user', authenticateToken, async (req, res) => {
+  try {
+    const bookings = await propertyBookingsCollection.find({ userId: req.user.userId }).toArray();
+    res.json(bookings);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching user property bookings', error });
+  }
+});
+// GET /api/property-bookings/owner - Get all property bookings for the current owner
+app.get('/api/property-bookings/owner', authenticateToken, async (req, res) => {
+  try {
+    const bookings = await propertyBookingsCollection.find({ ownerId: req.user.userId }).toArray();
+    res.json(bookings);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching owner property bookings', error });
+  }
+});
+
+// GET /api/payment/success-buy - SSLCommerz payment success callback for property
+app.get('/api/payment/success-buy', async (req, res) => {
+  try {
+    const userId = req.query.userId || req.body?.userId;
+    // Find latest pending property booking for this user
+    const latestPending = await propertyBookingsCollection.findOne({ userId, status: 'pending' }, { sort: { createdAt: -1 } });
+    if (latestPending) {
+      await propertyBookingsCollection.updateOne(
+        { _id: latestPending._id },
+        { $set: { status: 'paid', paidAt: new Date() } }
+      );
+    }
+    res.redirect(`${CLIENT_URL}/payment-success?bookingId=${latestPending?._id || ''}`);
+  } catch (error) {
+    res.status(500).send('Error updating property payment status');
   }
 });

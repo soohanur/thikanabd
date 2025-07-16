@@ -116,13 +116,7 @@ export default function PaymentBuy() {
               >
                 {redirecting ? "Redirecting to Payment..." : `Pay ৳${total}`}
               </button>
-              <button
-                className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-full font-bold w-full border border-gray-300 transition"
-                onClick={() => navigate('/profiles?tab=booked-properties')}
-                type="button"
-              >
-                Pay Later
-              </button>
+              
             </div>
           </>
         ) : null}
