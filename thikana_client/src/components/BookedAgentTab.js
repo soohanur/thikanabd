@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { apiUrl } from "../utils/api";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 function StarRating({ value, onChange }) {
   return (
@@ -35,6 +35,7 @@ export default function BookedAgentTab({ user }) {
   const [ratingSuccess, setRatingSuccess] = useState({});
   const [ratingError, setRatingError] = useState({});
   const [userRatings, setUserRatings] = useState({});
+  const navigate = useNavigate();
 
   useEffect(() => {
     async function fetchBookings() {
@@ -223,7 +224,7 @@ export default function BookedAgentTab({ user }) {
                   <div className="flex gap-2 mt-2 flex-wrap justify-center">
                     <button
                       className="bg-green-700 hover:bg-green-800 text-white px-3 py-1 rounded-full font-semibold shadow text-xs transition"
-                      onClick={() => window.location.href = `/messages/${booking.agentId}`}
+                      onClick={() => navigate(`/messages/${booking.agentId}`)}
                     >
                       Message
                     </button>
@@ -254,7 +255,7 @@ export default function BookedAgentTab({ user }) {
                       <div className="flex items-center gap-2">
                         <button
                           className="inline-flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-1 rounded-full font-semibold shadow-sm transition focus:outline-none focus:ring-2 focus:ring-green-400"
-                          onClick={() => window.location.href = `/payment?bookingId=${booking._id}`}
+                          onClick={() => navigate(`/payment?bookingId=${booking._id}`)}
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a5 5 0 00-10 0v2M5 12h14M7 16h10" /></svg>
                           Pay Now

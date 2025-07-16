@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import defaultProfile from "../assect/images/profile-thumb.png";
 import Navbar from "../components/navbar";
 import Footer from "../components/footer";
@@ -328,10 +328,13 @@ function MessagesPage({ user: propUser }) {
                   <img src={info.profilePicture ? (info.profilePicture.startsWith('http') ? info.profilePicture : apiUrl(info.profilePicture)) : defaultProfile} alt="avatar" className="w-10 h-10 rounded-full object-cover border-2 border-blue-100" />
                   <div>
                   <span
-                        className="cursor-pointer hover:underline"
-                        onClick={() => window.location.href = `/public-profile/${otherId}`}
-                      >
-                    <div className="font-semibold text-gray-900">{info.name || otherId?.slice(-6) || "User"}</div>
+                    className="cursor-pointer hover:underline"
+                  >
+                    <Link to={`/public-profile/${info.username || otherId}`}
+                      className="font-semibold text-gray-900"
+                    >
+                      {info.name || otherId?.slice(-6) || "User"}
+                    </Link>
                   </span>
                     <div className="text-xs text-gray-400">
                       {isOnline ? "Online" : lastSeen ? `Last seen ${lastSeen}` : "Offline"}

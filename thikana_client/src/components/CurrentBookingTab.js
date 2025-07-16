@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { apiUrl } from "../utils/api";
+import { useNavigate } from "react-router-dom";
 
 function StarDisplay({ value }) {
   return (
@@ -18,6 +19,7 @@ export default function BookingListTab({ user }) {
   const [bookingRatings, setBookingRatings] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     async function fetchBookings() {
@@ -93,7 +95,7 @@ export default function BookingListTab({ user }) {
                   <div className="flex gap-2 mt-2 flex-wrap justify-center">
                     <button
                       className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-full font-semibold shadow text-xs transition"
-                      onClick={() => window.location.href = `/messages/${booking.userId}`}
+                      onClick={() => navigate(`/messages/${booking.userId}`)}
                     >
                       Message
                     </button>

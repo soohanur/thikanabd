@@ -1,8 +1,9 @@
 import React from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 
 export default function PaymentCancel() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const bookingId = searchParams.get("bookingId");
   return (
     <div className="w-full min-h-screen flex items-center justify-center bg-gradient-to-br from-yellow-50 to-white px-[15px]">
@@ -20,7 +21,7 @@ export default function PaymentCancel() {
         <div className="mb-4 text-gray-600">You can retry payment from your dashboard if you wish to complete the booking.</div>
         <button
           className="mt-6 bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded-full font-bold text-lg shadow transition"
-          onClick={() => window.location.href = '/profiles'}
+          onClick={() => navigate('/profiles')}
         >
           Dashboard
         </button>

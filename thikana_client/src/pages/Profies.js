@@ -395,7 +395,7 @@ export default function Profiles() {
             <button className="w-full btn btn-success mt-8" onClick={() => {
               localStorage.removeItem('thikana_token');
               localStorage.removeItem('thikana_user');
-              window.location.href = '/';
+              navigate('/');
             }}>
               <i className="fas fa-sign-out-alt me-2"></i>Logout
             </button>
@@ -509,7 +509,7 @@ export default function Profiles() {
           <button className="w-full btn btn-success mt-8" onClick={() => {
             localStorage.removeItem('thikana_token');
             localStorage.removeItem('thikana_user');
-            window.location.href = '/';
+            navigate('/');
           }}>
             <i className="fas fa-sign-out-alt me-2"></i>Logout
           </button>

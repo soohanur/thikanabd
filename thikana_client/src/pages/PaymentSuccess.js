@@ -1,9 +1,10 @@
 import React from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 
 
 export default function PaymentSuccess() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const bookingId = searchParams.get("bookingId");
   return (
     <div className="w-full min-h-screen flex items-center justify-center bg-gray-50 px-[15px]">
@@ -20,7 +21,7 @@ export default function PaymentSuccess() {
         <div className="mb-4 text-gray-600">Thank you for booking an agent. You can view your booking details in your dashboard.</div>
         <button
           className="mt-6 bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-full font-bold text-lg shadow transition"
-          onClick={() => window.location.href = '/profiles'}
+          onClick={() => navigate('/profiles')}
         >
           Dashboard
         </button>
