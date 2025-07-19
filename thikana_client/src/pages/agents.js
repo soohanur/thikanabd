@@ -5,7 +5,7 @@ import { apiUrl, API_BASE_URL } from "../utils/api";
 import Select from "react-select";
 import { io } from "socket.io-client";
 import moment from "moment";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const ALL_DISTRICTS = [
   "Bagerhat", "Bandarban", "Barguna", "Barisal", "Bhola", "Bogra", "Brahmanbaria", "Chandpur", "Chapai Nawabganj", "Chattogram", "Chuadanga", "Comilla", "Cox's Bazar", "Dhaka", "Dinajpur", "Faridpur", "Feni", "Gaibandha", "Gazipur", "Gopalganj", "Habiganj", "Jamalpur", "Jashore", "Jhalokathi", "Jhenaidah", "Joypurhat", "Khagrachari", "Khulna", "Kishoreganj", "Kurigram", "Kushtia", "Lakshmipur", "Lalmonirhat", "Madaripur", "Magura", "Manikganj", "Meherpur", "Moulvibazar", "Munshiganj", "Mymensingh", "Naogaon", "Narail", "Narayanganj", "Narsingdi", "Natore", "Netrokona", "Nilphamari", "Noakhali", "Pabna", "Panchagarh", "Patuakhali", "Pirojpur", "Rajbari", "Rajshahi", "Rangamati", "Rangpur", "Satkhira", "Shariatpur", "Sherpur", "Sirajganj", "Sunamganj", "Sylhet", "Tangail", "Thakurgaon"
@@ -157,6 +157,7 @@ export default function AgentsPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [agentStatuses, setAgentStatuses] = useState({});
+    const navigate = useNavigate();
     // Filter states
     const [filterRating, setFilterRating] = useState(0);
     const [filterCharge, setFilterCharge] = useState(0);
@@ -332,7 +333,7 @@ export default function AgentsPage() {
                                     <Link key={agent._id || index} to={`/public-profile/${agent.username || agent._id}`} className="block">
                                         <AgentCard agent={agent} status={agentStatuses[agent._id]} onBook={e => {
                                             e.stopPropagation();
-                                            window.open(`/book-agent/${agent._id}`, '_blank');
+                                            navigate(`/book-agent/${agent._id}`);
                                         }} />
                                     </Link>
                                 ))

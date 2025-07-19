@@ -164,7 +164,7 @@ export default function Broker() {
                                                 status={agentStatuses[agent._id]}
                                                 onBook={e => {
                                                     e.stopPropagation();
-                                                    window.open(`/book-agent/${agent._id}`, '_blank');
+                                                    navigate(`/book-agent/${agent._id}`);
                                                 }}
                                             />
                                         </Link>
