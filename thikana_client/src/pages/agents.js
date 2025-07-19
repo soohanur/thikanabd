@@ -333,7 +333,9 @@ export default function AgentsPage() {
                                     <Link key={agent._id || index} to={`/public-profile/${agent.username || agent._id}`} className="block">
                                         <AgentCard agent={agent} status={agentStatuses[agent._id]} onBook={e => {
                                             e.stopPropagation();
+                                            
                                             navigate(`/book-agent/${agent._id}`);
+
                                         }} />
                                     </Link>
                                 ))
