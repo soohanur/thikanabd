@@ -10,13 +10,13 @@ function getApiBaseUrl() {
   return 'https://thikanabd-backend.onrender.com';
 }
 
-export const API_BASE_URL = getApiBaseUrl();
+export const API_BASE_URL = "http://localhost:5000";
 
 // Helper to prefix API URLs
 export function apiUrl(path) {
   if (!path) return API_BASE_URL;
-  if (path.startsWith('http')) return path;
-  return `${API_BASE_URL}${path.startsWith('/') ? path : '/' + path}`;
+  if (path.startsWith("http")) return path;
+  return `${API_BASE_URL}${path.startsWith("/") ? path : "/" + path}`;
 }
 
 // Preference: Use navigate for all link additions (client-side navigation)
