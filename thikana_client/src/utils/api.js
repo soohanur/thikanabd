@@ -6,8 +6,8 @@ function getApiBaseUrl() {
   if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
     return 'http://localhost:5000';
   }
-  // Otherwise, use production backend (set your Render.com backend URL here)
-  return 'https://your-production-backend-url.onrender.com';
+  // Otherwise, use production backend
+  return 'https://thikanabd-backend.onrender.com';
 }
 
 export const API_BASE_URL = getApiBaseUrl();
