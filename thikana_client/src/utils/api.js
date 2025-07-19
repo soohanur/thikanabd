@@ -10,7 +10,7 @@ function getApiBaseUrl() {
   return 'https://thikanabd-backend.onrender.com';
 }
 
-export const API_BASE_URL = "http://localhost:5000";
+export const API_BASE_URL = "https://thikanabd-backend.onrender.com";
 
 // Helper to prefix API URLs
 export function apiUrl(path) {
