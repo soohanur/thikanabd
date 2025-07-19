@@ -1165,3 +1165,10 @@ app.get('/api/payment/success-buy', async (req, res) => {
     res.status(500).send('Error updating property payment status');
   }
 });
+
+// Serve React app for all other routes (SPA fallback)
+const path = require('path');
+app.use(express.static(path.join(__dirname, '../thikana_client/build')));
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../thikana_client/build', 'index.html'));
+});

@@ -47,7 +47,8 @@ export default function BookedAgentTab({ user }) {
         const res = await axios.get(apiUrl("/api/bookings/user"), {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setBookings(res.data);
+        // Only keep bookings that have agentId (i.e., agent bookings)
+        setBookings(res.data.filter(b => b.agentId));
         // Fetch agent details for each booking
         const agentIds = [...new Set(res.data.map(b => b.agentId))];
         const details = {};
