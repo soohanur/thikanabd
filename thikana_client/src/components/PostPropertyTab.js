@@ -194,17 +194,21 @@ export default function PostPropertyTab({ user, onSuccess, editProperty }) {
       const formData = new FormData();
       Object.entries(form).forEach(([k, v]) => {
         if (k === "galleryImages" && Array.isArray(v)) {
-          v.forEach(img => formData.append("galleryImages", img));
+          v.forEach(img => {
+            if (img instanceof File) formData.append("galleryImages", img);
+          });
+        } else if (k === "coverImage" && v instanceof File) {
+          formData.append("coverImage", v);
         } else if (k === "map" && typeof v === "object" && v !== null) {
           formData.append("map", JSON.stringify(v));
-        } else if (k !== "_id" && v) {
+        } else if (k !== "_id" && v && k !== "galleryImages" && k !== "coverImage") {
           formData.append(k, v);
         }
       });
       const token = localStorage.getItem("thikana_token");
       if (editProperty && editProperty._id) {
         await fetch(apiUrl(`/api/properties/${editProperty._id}`), {
-          method: "POST",
+          method: "PUT",
           headers: { Authorization: `Bearer ${token}` },
           body: formData,
         });

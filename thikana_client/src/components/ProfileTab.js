@@ -100,8 +100,8 @@ export default function ProfileTab({ user, onUpdate }) {
         profilePicture: null,
         coverPicture: null,
       }));
-      setAvatarPreview(data.profilePicture || defaultProfile);
-      setCoverPreview(data.coverPicture || coverImg);
+      setAvatarPreview(data.profilePicture ? (data.profilePicture.startsWith('http') ? data.profilePicture : apiUrl(data.profilePicture)) : defaultProfile);
+      setCoverPreview(data.coverPicture ? (data.coverPicture.startsWith('http') ? data.coverPicture : apiUrl(data.coverPicture)) : coverImg);
       localStorage.setItem('thikana_user', JSON.stringify(data));
       if (onUpdate) onUpdate(data);
     } catch (err) {

@@ -152,9 +152,9 @@ export default function Broker() {
                 <div className="container mx-auto px-4 py-8">
                     <div className="flex flex-col gap-12 w-full">
                         {rows.map((row, rowIdx) => (
-                            <div key={rowIdx} className="flex flex-row gap-8 w-full justify-center">
+                            <div key={rowIdx} className="flex flex-col md:flex-row gap-8 w-full justify-center">
                                 {row.map((agent, index) => (
-                                    <div key={agent._id || index} className="flex-1 min-w-0 max-w-sm flex justify-center">
+                                    <div key={agent._id || index} className="flex-1 min-w-0 max-w-sm flex justify-center w-full md:w-auto">
                                         <Link
                                             to={`/public-profile/${agent.username || agent._id}`}
                                             className="block w-full h-full"

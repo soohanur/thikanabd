@@ -1,11 +1,22 @@
-// Centralized API base URL for all requests and image URLs
-export const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
+// Auto-detect API base URL for local and production
+function getApiBaseUrl() {
+  // If env variable is set, use it
+  if (process.env.REACT_APP_API_URL) return process.env.REACT_APP_API_URL;
+  // If running on localhost, use local backend
+  if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+    return 'http://localhost:5000';
+  }
+  // Otherwise, use production backend (set your Render.com backend URL here)
+  return 'https://your-production-backend-url.onrender.com';
+}
+
+export const API_BASE_URL = getApiBaseUrl();
 
 // Helper to prefix API URLs
 export function apiUrl(path) {
   if (!path) return API_BASE_URL;
-  if (path.startsWith("http")) return path;
-  return `${API_BASE_URL}${path.startsWith("/") ? path : "/" + path}`;
+  if (path.startsWith('http')) return path;
+  return `${API_BASE_URL}${path.startsWith('/') ? path : '/' + path}`;
 }
 
 // Preference: Use navigate for all link additions (client-side navigation)
