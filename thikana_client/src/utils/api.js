@@ -4,7 +4,7 @@ function getApiBaseUrl() {
   if (process.env.REACT_APP_API_URL) return process.env.REACT_APP_API_URL;
   // If running on localhost, use local backend
   if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
-    return 'http://localhost:5000';
+    return 'https://thikanabd-backend.onrender.com';
   }
   // Otherwise, use production backend
   return 'https://thikanabd-backend.onrender.com';
