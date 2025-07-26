@@ -387,23 +387,7 @@ export default function Index(){
                 <Broker/>
             </div>
 
-            <div className="container mt-5 mb-5">
-                <h3 className="mb-4 font-bold text-lg">Meet Our Users</h3>
-                {usersLoading && <div>Loading users...</div>}
-                {usersError && <div className="text-red-500">{usersError}</div>}
-                <div className="flex overflow-x-auto gap-6 pb-2">
-                    {users.map(user => (
-                        <Link key={user._id || user.username} to={`/public-profile/${user.username || user._id}`} className="flex flex-col items-center min-w-[100px]">
-                            <img
-                                src={user.profilePicture ? (user.profilePicture.startsWith('http') ? user.profilePicture : apiUrl(user.profilePicture)) : defaultProfile}
-                                alt={user.name}
-                                className="w-16 h-16 rounded-full object-cover border-2 border-green-500 shadow mb-2"
-                            />
-                            <span className="text-sm font-semibold text-gray-700 text-center">{user.name || user.username}</span>
-                        </Link>
-                    ))}
-                </div>
-            </div>
+            
         </section>
         <FooterTopImage/>
         <Footer/>
