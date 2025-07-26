@@ -375,9 +375,6 @@ export default function Index(){
                 </div>
             </div>
 
-            <div className="container mt-100 mt-60">
-                <Categories/>
-            </div>
 
             <div className="container mt-100 mt-60">
                 <FeaturedProperties/>
